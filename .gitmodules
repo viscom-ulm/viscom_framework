@@ -13,3 +13,6 @@
 	path = extern/stb
 	url = https://github.com/nothings/stb.git
 	branch = master
+[submodule "extern/tuio"]
+	path = extern/tuio
+	url = https://github.com/Ninjoon/TUIO11_CPP.git

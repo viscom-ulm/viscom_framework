@@ -30,6 +30,14 @@ set(VISCOM_SYNCINPUT ON CACHE BOOL "Synchronize input from master to clients.")
 set(VISCOM_CLIENTMOUSECURSOR ON CACHE BOOL "Show the mouse cursor on clients.")
 set(VISCOM_CONFIG_NAME "quad" CACHE STRING "Name/directory of the configuration files to be used.")
 
+set(WITH_TUIO OFF CACHE BOOL "Use TUIO input library")
+if( WITH_TUIO )
+    add_subdirectory(extern/tuio)
+    add_definitions(-DWITH_TUIO)
+    set(LIBTUIO libTUIO)
+endif()
+
+
 file(GLOB_RECURSE CFG_FILES ${PROJECT_SOURCE_DIR}/config/*.*)
 file(GLOB_RECURSE DATA_FILES ${PROJECT_SOURCE_DIR}/data/*.*)
 file(GLOB_RECURSE SHADER_FILES ${PROJECT_SOURCE_DIR}/resources/shader/*.*)
@@ -154,7 +162,8 @@ if( CMAKE_COMPILER_IS_GNUCXX )
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
 endif()
 
-target_link_libraries(${APP_NAME} ${LIBS} g3logger assimp)
+target_link_libraries(${APP_NAME} ${LIBS} g3logger assimp ${LIBTUIO})
+
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${APP_NAME})
 configure_file("framework_ide.cfg" "framework.cfg")
 target_compile_definitions(${APP_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
