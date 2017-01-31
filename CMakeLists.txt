@@ -30,11 +30,15 @@ set(VISCOM_SYNCINPUT ON CACHE BOOL "Synchronize input from master to clients.")
 set(VISCOM_CLIENTMOUSECURSOR ON CACHE BOOL "Show the mouse cursor on clients.")
 set(VISCOM_CONFIG_NAME "quad" CACHE STRING "Name/directory of the configuration files to be used.")
 
-set(WITH_TUIO OFF CACHE BOOL "Use TUIO input library")
+# This could be changed to "off" if the default target doesn't need the tuio library
+set(WITH_TUIO ON CACHE BOOL "Use TUIO input library")
 if( WITH_TUIO )
+	set(TUIO_PORT 3333 CACHE STRING "UDP Port for TUIO to listen on")
     add_subdirectory(extern/tuio)
     add_definitions(-DWITH_TUIO)
     set(LIBTUIO libTUIO)
+	include_directories(extern/tuio/TUIO
+						extern/tuio/oscpack)
 endif()
 
 
@@ -98,15 +102,15 @@ include_directories(${SGCT_INCLUDE_DIRECTORY}
                     extern/assimp/include/)
 
 if( MSVC )
-    set(LIBS ${SGCT_LIBS} ${OPENGL_LIBRARY} ws2_32)
+    set(LIBS ${SGCT_LIBS} ${OPENGL_LIBRARY} ${LIBTUIO} ws2_32)
 elseif( WIN32 ) #MINGW or similar
-    set(LIBS ${SGCT_LIBS} ${OPENGL_LIBRARY} ws2_32)
+    set(LIBS ${SGCT_LIBS} ${OPENGL_LIBRARY} ${LIBTUIO} ws2_32)
 elseif( APPLE )
     find_library(COCOA_LIBRARY Cocoa REQUIRED)
     find_library(IOKIT_LIBRARY IOKit REQUIRED)
     find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
 
-    set(LIBS ${SGCT_LIBS} ${OPENGL_LIBRARY} ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY})
+    set(LIBS ${SGCT_LIBS} ${OPENGL_LIBRARY} ${COCOA_LIBRARY} ${IOKIT_LIBRARY} ${COREVIDEO_LIBRARY} ${LIBTUIO})
 else() #linux
     find_library(X11_LIBRARY X11 REQUIRED)
     find_library(XRANDR_LIBRARY Xrandr REQUIRED)
@@ -114,7 +118,7 @@ else() #linux
     find_library(XXF86VM_LIBRARY Xxf86vm)
     find_library(PTHREAD pthread REQUIRED)
 
-    set(LIBS ${SGCT_LIBS} ${OPENGL_LIBRARY} ${X11_LIBRARY} ${XRANDR_LIBRARY} ${XI_LIBRARY} ${XXF86VM_LIBRARY} ${PTHREAD})
+    set(LIBS ${SGCT_LIBS} ${OPENGL_LIBRARY} ${X11_LIBRARY} ${XRANDR_LIBRARY} ${XI_LIBRARY} ${XXF86VM_LIBRARY} ${PTHREAD} ${LIBTUIO})
 endif()
 
 if( MSVC )
@@ -162,7 +166,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
 endif()
 
-target_link_libraries(${APP_NAME} ${LIBS} g3logger assimp ${LIBTUIO})
+target_link_libraries(${APP_NAME} ${LIBS} g3logger assimp)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${APP_NAME})
 configure_file("framework_ide.cfg" "framework.cfg")
