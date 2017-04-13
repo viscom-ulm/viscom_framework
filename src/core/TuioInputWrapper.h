@@ -7,7 +7,7 @@
 */
 
 #pragma once
-#if WITH_TUIO
+#ifdef WITH_TUIO
 
 #include "TuioListener.h"
 #include "TuioClient.h"

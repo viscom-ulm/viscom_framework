@@ -15,6 +15,19 @@ namespace viscom {
     MasterNode::MasterNode(ApplicationNode* appNode) :
         ApplicationNodeImplementation{ appNode }
     {
+
+
+#ifdef WITH_TUIO
+		TuioInputWrapper tuioInputWrapper;
+		TUIO::OscReceiver *receiver;
+		
+		// TODO: get port from config file
+		receiver = new TUIO::UdpReceiver(3333);
+
+		TUIO::TuioClient tuioClient(receiver);
+		tuioClient.addTuioListener(&tuioInputWrapper);
+		tuioClient.connect(true);
+#endif
     }
 
 

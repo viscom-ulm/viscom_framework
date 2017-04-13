@@ -9,6 +9,9 @@
 #pragma once
 
 #include "../app/ApplicationNodeImplementation.h"
+#ifdef WITH_TUIO
+#include "core/TuioInputWrapper.h"
+#endif
 
 namespace viscom {
 
