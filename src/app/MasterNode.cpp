@@ -18,15 +18,18 @@ namespace viscom {
 
 
 #ifdef WITH_TUIO
-		TuioInputWrapper tuioInputWrapper;
-		TUIO::OscReceiver *receiver;
-		
-		// TODO: get port from config file
-		receiver = new TUIO::UdpReceiver(3333);
+        TuioInputWrapper tuioInputWrapper;
+        TUIO::OscReceiver *receiver;
+        
+        // TODO: get port from config file
+        std::stringstream portCvt(GetConfig().tuioPort_);
+        int tuioPort = 3333;
+        portCvt >> tuioPort;
+        receiver = new TUIO::UdpReceiver(tuioPort);
 
-		TUIO::TuioClient tuioClient(receiver);
-		tuioClient.addTuioListener(&tuioInputWrapper);
-		tuioClient.connect(true);
+        TUIO::TuioClient tuioClient(receiver);
+        tuioClient.addTuioListener(&tuioInputWrapper);
+        tuioClient.connect(true);
 #endif
     }
 
