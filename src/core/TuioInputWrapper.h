@@ -13,23 +13,30 @@
 #include "TuioClient.h"
 #include "UdpReceiver.h"
 
+using namespace TUIO;
 
-class TuioInputWrapper : public TUIO::TuioListener {
+class TuioInputWrapper : public TuioListener {
 
 public:
-	void addTuioObject(TUIO::TuioObject *tobj);
-	void updateTuioObject(TUIO::TuioObject *tobj);
-	void removeTuioObject(TUIO::TuioObject *tobj);
+	TuioInputWrapper(int port);
 
-	void addTuioCursor(TUIO::TuioCursor *tcur);
-	void updateTuioCursor(TUIO::TuioCursor *tcur);
-	void removeTuioCursor(TUIO::TuioCursor *tcur);
+	void addTuioObject(TuioObject *tobj);
+	void updateTuioObject(TuioObject *tobj);
+	void removeTuioObject(TuioObject *tobj);
 
-	void addTuioBlob(TUIO::TuioBlob *tblb);
-	void updateTuioBlob(TUIO::TuioBlob *tblb);
-	void removeTuioBlob(TUIO::TuioBlob *tblb);
+	void addTuioCursor(TuioCursor *tcur);
+	void updateTuioCursor(TuioCursor *tcur);
+	void removeTuioCursor(TuioCursor *tcur);
 
-	void refresh(TUIO::TuioTime frameTime);
+	void addTuioBlob(TuioBlob *tblb);
+	void updateTuioBlob(TuioBlob *tblb);
+	void removeTuioBlob(TuioBlob *tblb);
+
+	void refresh(TuioTime frameTime);
+
+private:
+	TuioClient* tuioClient;
+	OscReceiver* receiver;
 };
 
 
