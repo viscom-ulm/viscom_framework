@@ -182,3 +182,12 @@ else()
         target_compile_definitions(${APP_NAME} PRIVATE VISCOM_CLIENTGUI)
     endif()
 endif()
+
+if ( TUIO_LIB )                          
+    add_custom_command(TARGET ${APP_NAME} POST_BUILD
+    COMMAND cp
+        ${PROJECT_BINARY_DIR}/extern/tuio/\$<CONFIGURATION>/*.dll
+        ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Copy libTUIO")
+endif()
+        
