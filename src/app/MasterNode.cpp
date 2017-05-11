@@ -22,7 +22,7 @@ namespace viscom {
         int tuioPort = 3333;
         portCvt >> tuioPort;
 
-		TuioInputWrapper* tuioInputWrapper = new TuioInputWrapper(tuioPort);
+		TuioInputWrapper* tuioInputWrapper = new TuioInputWrapper(tuioPort, this);
 #endif
     }
 

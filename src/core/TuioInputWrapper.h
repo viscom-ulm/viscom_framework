@@ -15,10 +15,14 @@
 
 using namespace TUIO;
 
+namespace viscom {
+    class MasterNode;
+}
+
 class TuioInputWrapper : public TuioListener {
 
 public:
-	TuioInputWrapper(int port);
+	TuioInputWrapper(int port, viscom::MasterNode* node);
 
 	void addTuioObject(TuioObject *tobj);
 	void updateTuioObject(TuioObject *tobj);
@@ -35,8 +39,9 @@ public:
 	void refresh(TuioTime frameTime);
 
 private:
-	TuioClient* tuioClient;
-	OscReceiver* receiver;
+    viscom::MasterNode* node_;
+	TuioClient* tuioClient_;
+	OscReceiver* receiver_;
 };
 
 

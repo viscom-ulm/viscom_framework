@@ -10,14 +10,14 @@
 
 #include "TuioInputWrapper.h"
 
-
-TuioInputWrapper::TuioInputWrapper(int port)
+TuioInputWrapper::TuioInputWrapper(int port, viscom::MasterNode* node) :
+    node_ { node }
 {
-	receiver = new UdpReceiver(port);
+	receiver_ = new UdpReceiver(port);
 
-	tuioClient = new TuioClient(receiver);
-	tuioClient->addTuioListener(this);
-	tuioClient->connect();
+	tuioClient_ = new TuioClient(receiver_);
+	tuioClient_->addTuioListener(this);
+	tuioClient_->connect();
 }
 
 void TuioInputWrapper::addTuioCursor(TuioCursor *tcur) {
