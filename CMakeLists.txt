@@ -31,8 +31,8 @@ set(VISCOM_CLIENTMOUSECURSOR ON CACHE BOOL "Show the mouse cursor on clients.")
 set(VISCOM_CONFIG_NAME "quad" CACHE STRING "Name/directory of the configuration files to be used.")
 
 # This could be changed to "off" if the default target doesn't need the tuio library
-set(WITH_TUIO ON CACHE BOOL "Use TUIO input library")
-if( WITH_TUIO )
+set(TUIO_LIB ON CACHE BOOL "Use TUIO input library")
+if( TUIO_LIB )
 	set(TUIO_PORT 3333 CACHE STRING "UDP Port for TUIO to listen on")
     add_subdirectory(extern/tuio)
     add_definitions(-DWITH_TUIO)
@@ -182,3 +182,12 @@ else()
         target_compile_definitions(${APP_NAME} PRIVATE VISCOM_CLIENTGUI)
     endif()
 endif()
+
+if ( TUIO_LIB )                          
+    add_custom_command(TARGET ${APP_NAME} POST_BUILD
+    COMMAND cp
+        ${PROJECT_BINARY_DIR}/extern/tuio/\$<CONFIGURATION>/*.dll
+        ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Copy libTUIO")
+endif()
+        
