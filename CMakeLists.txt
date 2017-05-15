@@ -234,9 +234,9 @@ endif()
 
 if ( TUIO_LIB )                          
     add_custom_command(TARGET ${APP_NAME} POST_BUILD
-    COMMAND cp
-        ${PROJECT_BINARY_DIR}/extern/tuio/\$<CONFIGURATION>/*.dll
-        ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_BINARY_DIR}/extern/tuio/\$<CONFIG>/
+        ${PROJECT_BINARY_DIR}
     COMMENT "Copy libTUIO")
 endif()
         
