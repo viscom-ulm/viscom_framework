@@ -78,7 +78,7 @@ namespace viscom {
             else if (str == "SGCT_CONFIG=") ifs >> config.sgctConfig_;
             else if (str == "PROJECTOR_DATA=") ifs >> config.projectorData_;
             else if (str == "LOCAL=") ifs >> config.sgctLocal_;
-			else if (str == "TUIO_PORT=") ifs >> config.tuioPort_;
+            else if (str == "TUIO_PORT=") ifs >> config.tuioPort_;
         }
         ifs.close();
 
