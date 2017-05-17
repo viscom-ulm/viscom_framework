@@ -26,7 +26,6 @@ namespace viscom {
 #endif
     }
 
-
     MasterNode::~MasterNode() = default;
 
 
@@ -76,7 +75,7 @@ namespace viscom {
         ApplicationNodeImplementation::KeyboardCallback(key, scancode, action, mods);
     }
 
-    void MasterNode::CharCallback(unsigned character, int mods)
+    void MasterNode::CharCallback(unsigned int character, int mods)
     {
 #ifndef VISCOM_CLIENTGUI
         ImGui_ImplGlfwGL3_CharCallback(character);

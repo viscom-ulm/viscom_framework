@@ -20,7 +20,6 @@ namespace viscom {
     {
     }
 
-
     ApplicationNodeImplementation::~ApplicationNodeImplementation() = default;
 
     void ApplicationNodeImplementation::PreWindow()
@@ -170,7 +169,7 @@ namespace viscom {
 #endif
     }
 
-    void ApplicationNodeImplementation::CharCallback(unsigned character, int mods)
+    void ApplicationNodeImplementation::CharCallback(unsigned int character, int mods)
     {
 #ifdef VISCOM_CLIENTGUI
         ImGui_ImplGlfwGL3_CharCallback(character);

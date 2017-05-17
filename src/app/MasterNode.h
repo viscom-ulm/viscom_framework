@@ -19,7 +19,7 @@ namespace viscom {
     {
     public:
         explicit MasterNode(ApplicationNode* appNode);
-        ~MasterNode();
+        virtual ~MasterNode() override;
 
         void InitOpenGL() override;
         void PreSync() override;
