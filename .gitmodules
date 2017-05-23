@@ -13,3 +13,6 @@
 	path = extern/stb
 	url = https://github.com/nothings/stb.git
 	branch = master
+[submodule "extern/fwcore"]
+	path = extern/fwcore
+	url = ssh://git@mobile1.informatik.uni-ulm.de/viscomlab_framework_corelib.git
