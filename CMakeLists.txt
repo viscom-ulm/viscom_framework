@@ -76,8 +76,13 @@ endforeach()
 
 add_executable(${APP_NAME} ${SRC_FILES} ${SRC_FILES_CORE} ${SHADER_FILES} ${SHADER_FILES_CORE} ${EXTERN_SOURCES_CORE})
 set_target_properties(${APP_NAME} PROPERTIES OUTPUT_NAME ${VISCOM_APP_NAME})
+target_include_directories(${APP_NAME} PRIVATE ${CORE_INCLUDE_DIRS})
 target_link_libraries(${APP_NAME} ${CORE_LIBS})
 target_compile_definitions(${APP_NAME} PRIVATE ${COMPILE_TIME_DEFS})
 
 configure_file("framework_ide.cfg" "framework.cfg")
 configure_file("framework_ide_local_slave.cfg" "framework_local_slave.cfg")
+
+foreach(f ${CORE_DLLS_TO_COPY})
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${f} ${CMAKE_BINARY_DIR})
+endforeach()
