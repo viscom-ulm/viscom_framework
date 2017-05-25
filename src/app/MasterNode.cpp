@@ -18,11 +18,7 @@ namespace viscom {
 
 
 #ifdef WITH_TUIO
-		std::stringstream portCvt(GetConfig().tuioPort_);
-        int tuioPort = 3333;
-        portCvt >> tuioPort;
-
-		TuioInputWrapper* tuioInputWrapper = new TuioInputWrapper(tuioPort, this);
+        auto tuioInputWrapper = std::make_unique<TuioInputWrapper>(GetConfig().tuioPort_, this);
 #endif
     }
 

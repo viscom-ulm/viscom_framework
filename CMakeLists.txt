@@ -83,6 +83,4 @@ target_compile_definitions(${APP_NAME} PRIVATE ${COMPILE_TIME_DEFS})
 configure_file("framework_ide.cfg" "framework.cfg")
 configure_file("framework_ide_local_slave.cfg" "framework_local_slave.cfg")
 
-foreach(f ${CORE_DLLS_TO_COPY})
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${f} ${CMAKE_BINARY_DIR})
-endforeach()
+copy_core_lib_dlls(${APP_NAME})
