@@ -77,18 +77,20 @@ add_subdirectory(extern/assimp)
 set(VISCOM_CLIENTGUI ON CACHE BOOL "Use ImGui on clients.")
 set(VISCOM_SYNCINPUT ON CACHE BOOL "Synchronize input from master to clients.")
 set(VISCOM_CLIENTMOUSECURSOR ON CACHE BOOL "Show the mouse cursor on clients.")
-set(VISCOM_CONFIG_NAME "quad" CACHE STRING "Name/directory of the configuration files to be used.")
+set(VISCOM_CONFIG_NAME "single" CACHE STRING "Name/directory of the configuration files to be used.")
 set(VISCOM_APP_NAME "${APP_NAME}" CACHE STRING "Name of the application to be build.")
+set(VISCOM_LOCAL_ONLY ON CACHE BOOL "Only do a local build without calibration information.")
+set(VISCOM_VIRTUAL_SCREEN_X 1920 CACHE INTEGER "Virtual screen size in x direction.")
+set(VISCOM_VIRTUAL_SCREEN_Y 1080 CACHE INTEGER "Virtual screen size in y direction.")
 
 # This could be changed to "off" if the default target doesn't need the tuio library
 set(TUIO_LIB ON CACHE BOOL "Use TUIO input library")
 if( TUIO_LIB )
-	set(TUIO_PORT 3333 CACHE STRING "UDP Port for TUIO to listen on")
+    set(TUIO_PORT 3333 CACHE STRING "UDP Port for TUIO to listen on")
     add_subdirectory(extern/tuio)
     add_definitions(-DWITH_TUIO)
     set(LIBTUIO libTUIO)
-	include_directories(extern/tuio/TUIO
-						extern/tuio/oscpack)
+    include_directories(extern/tuio/TUIO extern/tuio/oscpack)
 endif()
 
 
@@ -101,6 +103,13 @@ file(GLOB_RECURSE SRC_FILES
     ${PROJECT_SOURCE_DIR}/src/*.cpp)
 source_group("shader" FILES ${SHADER_FILES})
 source_group("extern" FILES ${EXTERN_SOURCES})
+
+if (${VISCOM_LOCAL_ONLY})
+    list(REMOVE_ITEM SRC_FILES "${PROJECT_SOURCE_DIR}/src/core/SlaveNodeInternal.h")
+    list(REMOVE_ITEM SRC_FILES "${PROJECT_SOURCE_DIR}/src/core/SlaveNodeInternal.cpp")
+    list(REMOVE_ITEM SRC_FILES "${PROJECT_SOURCE_DIR}/src/core/OpenCVParserHelper.h")
+    list(REMOVE_ITEM SRC_FILES "${PROJECT_SOURCE_DIR}/src/core/OpenCVParserHelper.cpp")
+endif()
 
 foreach(f ${SRC_FILES})
     file(RELATIVE_PATH SRCGR ${PROJECT_SOURCE_DIR} ${f})
@@ -221,6 +230,7 @@ target_link_libraries(${APP_NAME} ${LIBS} g3logger assimp)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${APP_NAME})
 configure_file("framework_ide.cfg" "framework.cfg")
+configure_file("framework_ide_local_slave.cfg" "framework_local_slave.cfg")
 target_compile_definitions(${APP_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
 
 if (${VISCOM_CLIENTMOUSECURSOR})
@@ -234,11 +244,14 @@ else()
     endif()
 endif()
 
-if ( TUIO_LIB )                          
+if (${VISCOM_LOCAL_ONLY})
+    target_compile_definitions(${APP_NAME} PRIVATE VISCOM_LOCAL_ONLY)
+endif()
+
+if ( TUIO_LIB )
     add_custom_command(TARGET ${APP_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${PROJECT_BINARY_DIR}/extern/tuio/\$<CONFIG>/
         ${PROJECT_BINARY_DIR}
     COMMENT "Copy libTUIO")
 endif()
-        

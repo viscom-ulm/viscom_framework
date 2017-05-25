@@ -8,14 +8,14 @@
 
 #pragma once
 
-#include "core/SlaveNodeInternal.h"
+#include "core/SlaveNodeHelper.h"
 
 namespace viscom {
 
     class SlaveNode final : public SlaveNodeInternal
     {
     public:
-        explicit SlaveNode(ApplicationNode* appNode);
+        explicit SlaveNode(ApplicationNodeInternal* appNode);
         virtual ~SlaveNode() override;
 
         void Draw2D(FrameBuffer& fbo) override;

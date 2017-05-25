@@ -29,7 +29,9 @@ namespace viscom {
         std::string sgctConfig_;
         std::string projectorData_;
         std::string sgctLocal_;
-		std::string tuioPort_;
+        std::string tuioPort_;
+        bool sgctSlave_ = false;
+        glm::vec2 virtualScreenSize_;
     };
 
 

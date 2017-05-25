@@ -18,7 +18,7 @@ namespace viscom {
     class MasterNode final : public ApplicationNodeImplementation
     {
     public:
-        explicit MasterNode(ApplicationNode* appNode);
+        explicit MasterNode(ApplicationNodeInternal* appNode);
         virtual ~MasterNode() override;
 
         void InitOpenGL() override;
@@ -27,11 +27,11 @@ namespace viscom {
         void Draw2D(FrameBuffer& fbo) override;
         void CleanUp() override;
 
-        void KeyboardCallback(int key, int scancode, int action, int mods) override;
-        void CharCallback(unsigned int character, int mods) override;
-        void MouseButtonCallback(int button, int action) override;
-        void MousePosCallback(double x, double y) override;
-        void MouseScrollCallback(double xoffset, double yoffset) override;
+        bool KeyboardCallback(int key, int scancode, int action, int mods) override;
+        bool CharCallback(unsigned int character, int mods) override;
+        bool MouseButtonCallback(int button, int action) override;
+        bool MousePosCallback(double x, double y) override;
+        bool MouseScrollCallback(double xoffset, double yoffset) override;
 
     };
 }
