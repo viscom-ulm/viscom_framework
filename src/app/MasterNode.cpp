@@ -22,9 +22,8 @@ namespace viscom {
     void MasterNode::Draw2D(FrameBuffer& fbo)
     {
         fbo.DrawToFBO([]() {
-#ifndef VISCOM_CLIENTGUI
             ImGui::ShowTestWindow();
-#endif
+
             ImGui::SetNextWindowPos(ImVec2(700, 60), ImGuiSetCond_FirstUseEver);
             ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
             if (ImGui::Begin("MasterTestWindow", nullptr, ImGuiWindowFlags_ShowBorders))
