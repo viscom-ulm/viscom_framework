@@ -1,4 +1,4 @@
 [submodule "extern/fwcore"]
 	path = extern/fwcore
 	url = ssh://git@mobile1.informatik.uni-ulm.de/viscomlab_framework_corelib.git
-	branch = v_4.0
+	branch = v_0.5
