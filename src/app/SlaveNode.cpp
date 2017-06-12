@@ -7,6 +7,7 @@
  */
 
 #include "SlaveNode.h"
+#include <imgui.h>
 
 namespace viscom {
 
