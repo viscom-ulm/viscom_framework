@@ -9,6 +9,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "core/open_gl.h"
 
 namespace viscom {
 
