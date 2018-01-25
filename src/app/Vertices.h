@@ -31,7 +31,7 @@ namespace viscom {
         SimpleMeshVertex(const glm::vec3& pos, const glm::vec3& normal, const glm::vec2& tex) : position_(pos), normal_(normal), texCoords_(tex) {}
         static void SetVertexAttributes(const GPUProgram* program)
         {
-            auto attribLoc = program->getAttributeLocations({ "position", "normal", "texCoords" });
+            auto attribLoc = program->GetAttributeLocations({ "position", "normal", "texCoords" });
 
             if (attribLoc[0] != -1) {
                 glEnableVertexAttribArray(attribLoc[0]);

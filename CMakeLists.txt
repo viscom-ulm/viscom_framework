@@ -60,7 +60,7 @@ if(GENERATOR_IS_MULTI_CONFIG)
     set(COMPILE_DEFINITIONS_DEBUGSLAVE ${COMPILE_DEFINITIONS_DEBUG})
 endif()
 
-include(${PROJECT_SOURCE_DIR}/extern/fwcore/CMake_core.txt)
+include(${PROJECT_SOURCE_DIR}/extern/fwcore/CMake_core.cmake)
 
 set(VISCOM_CONFIG_NAME "single" CACHE STRING "Name/directory of the configuration files to be used.")
 set(VISCOM_VIRTUAL_SCREEN_X 1920 CACHE INTEGER "Virtual screen size in x direction.")
@@ -106,6 +106,12 @@ set(VISCOM_CONFIG_SGCT_CONFIG "../../calibration/data/${VISCOM_CONFIG_NAME}/${VI
 set(VISCOM_CONFIG_PROJECTOR_DATA "../../calibration/data/${VISCOM_CONFIG_NAME}/ProjectorData.xml")
 set(VISCOM_CONFIG_LOCAL "-1")
 configure_file("framework.cfg" "framework_install.cfg")
+
+if(GENERATOR_IS_MULTI_CONFIG)
+    foreach(CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES})
+        configure_file("RDSettings.cap" "${CONFIG_TYPE}Settings.cap")
+    endforeach()
+endif()
 
 copy_core_lib_dlls(${APP_NAME})
 
