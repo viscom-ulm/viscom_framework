@@ -33,6 +33,9 @@ namespace viscom {
 
         triangleProgram_ = GetGPUProgramManager().GetResource("foregroundTriangle", std::vector<std::string>{ "foregroundTriangle.vert", "foregroundTriangle.frag" });
         triangleMVPLoc_ = triangleProgram_->getUniformLocation("MVP");
+		
+		mousepointProgram_ = GetGPUProgramManager().GetResource("mousePoint", std::vector<std::string>{"mousePoint.vert", "mousePoint.frag"});
+		mousepointMVPLoc_ = mousepointProgram_->getUniformLocation("MVP");
 
         teapotProgram_ = GetGPUProgramManager().GetResource("foregroundMesh", std::vector<std::string>{ "foregroundMesh.vert", "foregroundMesh.frag" });
         teapotModelMLoc_ = teapotProgram_->getUniformLocation("modelMatrix");
@@ -93,6 +96,9 @@ namespace viscom {
         glm::quat rollQuat = glm::angleAxis(camRot_.z, glm::vec3(0.0f, 0.0f, 1.0f));
         GetCamera()->SetOrientation(yawQuat * pitchQuat * rollQuat);
 
+		//TODO
+		mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
     }
@@ -126,6 +132,15 @@ namespace viscom {
                 glDrawArrays(GL_TRIANGLES, numBackgroundVertices_, 3);
                 glEnable(GL_CULL_FACE);
             }
+			
+			{ //TODO
+				glDisable(GL_CULL_FACE);
+				auto mousepointMVP = MVP * mousepointModelMatrix_;
+				glUseProgram(mousepointProgram_->getProgramId());
+				glUniformMatrix4fv(mousepointMVPLoc_, 1, GL_FALSE, glm::value_ptr(mousepointMVP));
+				glDrawArrays(GL_POINTS, numBackgroundVertices_, 3);
+				glEnable(GL_CULL_FACE);
+			}
 
             {
                 glUseProgram(teapotProgram_->getProgramId());
@@ -206,5 +221,19 @@ namespace viscom {
         }
         return false;
     }
+	
+	bool ApplicationNodeImplementation::MousePosCallback(double x, double y) {
 
+		if (ApplicationNodeBase::MousePosCallback(x, y)) return true;
+
+		if (posx != x || posy != y) {
+			posx = x;
+			posy = y;
+			return true;
+
+		}
+		return false;
+
+
+	}
 }

@@ -32,6 +32,7 @@ namespace viscom {
         virtual void CleanUp() override;
 
         virtual bool KeyboardCallback(int key, int scancode, int action, int mods) override;
+		virtual bool MousePosCallback(double x, double y) override;
 
     private:
         /** Holds the shader program for drawing the background. */
@@ -43,6 +44,11 @@ namespace viscom {
         std::shared_ptr<GPUProgram> triangleProgram_;
         /** Holds the location of the MVP matrix. */
         GLint triangleMVPLoc_ = -1;
+		
+		/** Holds the shader program for drawing the Mousepoint. */
+		std::shared_ptr<GPUProgram> mousepointProgram_;
+		/** Holds the location of the MVP matrix. */
+		GLint mousepointMVPLoc_ = -1;
 
         /** Holds the shader program for drawing the foreground teapot. */
         std::shared_ptr<GPUProgram> teapotProgram_;
@@ -66,8 +72,10 @@ namespace viscom {
         std::unique_ptr<MeshRenderable> teapotRenderable_;
 
         glm::mat4 triangleModelMatrix_;
+		glm::mat4 mousepointModelMatrix_;
         glm::mat4 teapotModelMatrix_;
         glm::vec3 camPos_;
         glm::vec3 camRot_;
+		double posx, posy;
     };
 }
