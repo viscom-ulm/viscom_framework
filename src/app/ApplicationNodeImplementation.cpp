@@ -70,6 +70,8 @@ namespace viscom {
         gridVertices.emplace_back(glm::vec3(0.0f, 0.5f, 0.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
         gridVertices.emplace_back(glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
+        gridVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
         glGenBuffers(1, &vboBackgroundGrid_);
         glBindBuffer(GL_ARRAY_BUFFER, vboBackgroundGrid_);
         glBufferData(GL_ARRAY_BUFFER, gridVertices.size() * sizeof(GridVertex), gridVertices.data(), GL_STATIC_DRAW);
@@ -96,9 +98,9 @@ namespace viscom {
         glm::quat rollQuat = glm::angleAxis(camRot_.z, glm::vec3(0.0f, 0.0f, 1.0f));
         GetCamera()->SetOrientation(yawQuat * pitchQuat * rollQuat);
 
-		//TODO
-		mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		
+		        
+        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(1.75f), (float)posdy*(-1.0f), 0.0f));
+        
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
     }
@@ -134,13 +136,12 @@ namespace viscom {
             }
 			
 			{ //TODO
-				glDisable(GL_CULL_FACE);
 				auto mousepointMVP = MVP * mousepointModelMatrix_;
+                glPointSize(30);
 				glUseProgram(mousepointProgram_->getProgramId());
 				glUniformMatrix4fv(mousepointMVPLoc_, 1, GL_FALSE, glm::value_ptr(mousepointMVP));
-				glDrawArrays(GL_POINTS, numBackgroundVertices_, 3);
-				glEnable(GL_CULL_FACE);
-			}
+				glDrawArrays(GL_POINTS, numBackgroundVertices_+3, 1);
+            }
 
             {
                 glUseProgram(teapotProgram_->getProgramId());
@@ -222,18 +223,17 @@ namespace viscom {
         return false;
     }
 	
-	bool ApplicationNodeImplementation::MousePosCallback(double x, double y) {
+    bool ApplicationNodeImplementation::MousePosCallback(double x, double y) {
 
-		if (ApplicationNodeBase::MousePosCallback(x, y)) return true;
+        if (ApplicationNodeBase::MousePosCallback(x, y)) return true;
 
-		if (posx != x || posy != y) {
-			posx = x;
-			posy = y;
-			return true;
-
-		}
-		return false;
-
-
-	}
+        if (posx != x || posy != y) {
+            posx = x;
+            posy = y;
+            posdx = posx * 2 - 1;
+            posdy = posy * 2 - 1;
+            return true;
+        }
+        return false;
+    }
 }

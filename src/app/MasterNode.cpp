@@ -8,6 +8,7 @@
 
 #include "MasterNode.h"
 #include <imgui.h>
+#include <openvr.h>
 
 namespace viscom {
 
@@ -20,6 +21,10 @@ namespace viscom {
 
     void MasterNode::Draw2D(FrameBuffer& fbo)
     {
+        
+        vr::EVRInitError peError;
+        vr::IVRSystem *vr = vr::VR_Init( &peError, vr::EVRApplicationType::VRApplication_Background);
+             
         fbo.DrawToFBO([]() {
             ImGui::ShowTestWindow();
 

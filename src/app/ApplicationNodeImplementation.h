@@ -75,7 +75,8 @@ namespace viscom {
 		glm::mat4 mousepointModelMatrix_;
         glm::mat4 teapotModelMatrix_;
         glm::vec3 camPos_;
-        glm::vec3 camRot_;
-		double posx, posy;
+        glm::vec3 camRot_;		           
+        double posx, posy, posdx, posdy;
+
     };
 }
