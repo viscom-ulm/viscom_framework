@@ -19,11 +19,24 @@ namespace viscom {
 
     MasterNode::~MasterNode() = default;
 
+    void MasterNode::InitOpenGL() {
+        vr::EVRInitError peError;
+        vr::IVRSystem *vr = vr::VR_Init(&peError, vr::EVRApplicationType::VRApplication_Background);
+        if (peError != vr::VRInitError_None) {
+            // TODO Init fehlerbehandlung
+        }
+        ApplicationNodeImplementation::InitOpenGL();
+    }
+
+    void MasterNode::CleanUp() {
+        vr::VR_Shutdown();
+        ApplicationNodeBase::CleanUp();
+    }
+
     void MasterNode::Draw2D(FrameBuffer& fbo)
     {
         
-        vr::EVRInitError peError;
-        vr::IVRSystem *vr = vr::VR_Init( &peError, vr::EVRApplicationType::VRApplication_Background);
+        
              
         fbo.DrawToFBO([]() {
             ImGui::ShowTestWindow();

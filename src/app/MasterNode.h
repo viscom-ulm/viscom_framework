@@ -22,6 +22,8 @@ namespace viscom {
         virtual ~MasterNode() override;
 
         void Draw2D(FrameBuffer& fbo) override;
-
+        void MasterNode::InitOpenGL() override;
+        void MasterNode::CleanUp() override;
     };
+    
 }
