@@ -12,6 +12,7 @@
 #ifdef WITH_TUIO
 #include "core/TuioInputWrapper.h"
 #endif
+#include <openvr.h>
 
 namespace viscom {
 
@@ -22,8 +23,25 @@ namespace viscom {
         virtual ~MasterNode() override;
 
         void Draw2D(FrameBuffer& fbo) override;
-        void MasterNode::InitOpenGL() override;
-        void MasterNode::CleanUp() override;
+        void InitOpenGL() override;
+        void CleanUp() override;
+
+        void UpdateFrame(double currenttime,double) override;
+
+        bool vrInitSucc = false;
+        bool bAcquireTrackingDataByWaitingForVREvents = false;
+
+    private:
+        bool ProcessVREvent(const vr::VREvent_t & event);
+        void ParseTrackingFrame();
+
+        vr::HmdVector3_t GetPosition(vr::HmdMatrix34_t matrix);
+        vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix);
+
+        vr::IVRSystem *m_pHMD;
+        vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+       
+        
     };
     
 }
