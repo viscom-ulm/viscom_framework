@@ -352,7 +352,8 @@ namespace viscom {
 
                 ImGui::SetNextWindowPos(ImVec2(700, 60), ImGuiSetCond_FirstUseEver);
                 ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
-                if (ImGui::Begin("MasterTestWindow", nullptr, ImGuiWindowFlags_ShowBorders))
+                ImGui::StyleColorsClassic();
+                if (ImGui::Begin("MasterTestWindow", nullptr))
                 {
                     ImGui::Text("Hello World on Master!");
                     ImGui::Text("Vr Init succesful");                
@@ -366,7 +367,8 @@ namespace viscom {
 
                 ImGui::SetNextWindowPos(ImVec2(700, 60), ImGuiSetCond_FirstUseEver);
                 ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
-                if (ImGui::Begin("MasterTestWindow", nullptr, ImGuiWindowFlags_ShowBorders))
+                ImGui::StyleColorsClassic();
+                if (ImGui::Begin("MasterTestWindow", nullptr))
                 {
                     ImGui::Text("Hello World on Master!");
                 }
