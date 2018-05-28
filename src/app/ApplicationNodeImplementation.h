@@ -72,11 +72,13 @@ namespace viscom {
         std::unique_ptr<MeshRenderable> teapotRenderable_;
 
         glm::mat4 triangleModelMatrix_;
-		glm::mat4 mousepointModelMatrix_;
+		
         glm::mat4 teapotModelMatrix_;
         glm::vec3 camPos_;
         glm::vec3 camRot_;		           
         double posx, posy, posdx, posdy;
 
+    protected:
+        glm::mat4 mousepointModelMatrix_;
     };
 }

@@ -9,6 +9,7 @@
 #include "MasterNode.h"
 #include <imgui.h>
 #include <openvr.h>
+#include <glm\gtc\matrix_transform.hpp>
 
 namespace viscom {
 
@@ -21,6 +22,7 @@ namespace viscom {
 
     void MasterNode::InitOpenGL() {
         vr::EVRInitError peError;
+        // VRApplication_Scene (starts SteamVR no proper data) VRApplication_Overlay (starts SteamVR no SteamVRHome)  VRApplication_Background (doesn't start SteamVR uses SteamVRHome
         m_pHMD = vr::VR_Init(&peError, vr::EVRApplicationType::VRApplication_Background);
         if (peError == vr::VRInitError_None) {
             vrInitSucc = true;
@@ -33,6 +35,7 @@ namespace viscom {
         vr::VR_Shutdown();
         ApplicationNodeBase::CleanUp();
     }
+
     void MasterNode::UpdateFrame(double currenttime, double elapsedtime) {
         if (bAcquireTrackingDataByWaitingForVREvents) {
             vr::VREvent_t event;
@@ -46,6 +49,12 @@ namespace viscom {
         else {
             ParseTrackingFrame();
         }
+        displayPos = GetDisplayPosVector(position, zvector, { -1.7f, -0.2f, -3.0f }, { -1.7f, 1.5f, -3.0f }, { 1.8f, -0.28f, -3.0f });
+        float posdx = displayPos.v[0] * 2 - 1;
+        float posdy = displayPos.v[1] * 2 - 1;
+
+        //tracks the Controller pointing position
+        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy*(-1.0f), 0.0f));
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
     }
 
@@ -175,7 +184,7 @@ namespace viscom {
             vr::VRControllerState_t controllerState;
             vr::VRControllerState_t *ontrollerState_ptr = &controllerState;
 
-            vr::HmdVector3_t position;
+            
             vr::HmdQuaternion_t quaternion;
 
             if (!vr::VRSystem()->IsInputAvailable()) {
@@ -198,6 +207,7 @@ namespace viscom {
 
                 // get the position and rotation
                 position = GetPosition(devicePose->mDeviceToAbsoluteTracking);
+                zvector = GetZVector(devicePose->mDeviceToAbsoluteTracking);
                 quaternion = GetRotation(devicePose->mDeviceToAbsoluteTracking);
 
                 // get some data
@@ -243,6 +253,7 @@ namespace viscom {
                 vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseSeated, unDevice, &controllerState, sizeof(controllerState), &trackedDevicePose);
 
                 position = GetPosition(devicePose->mDeviceToAbsoluteTracking);
+                zvector = GetZVector(devicePose->mDeviceToAbsoluteTracking);
                 quaternion = GetRotation(devicePose->mDeviceToAbsoluteTracking);
 
                 vVel = trackedDevicePose.vVelocity;
@@ -258,7 +269,7 @@ namespace viscom {
                     //
                 case vr::TrackedControllerRole_LeftHand:
 
-                    char buf[1024];
+                    /*char buf[1024];
 
                     sprintf_s(buf, sizeof(buf), "\nLeft Controller\nx: %.2f y: %.2f z: %.2f\n", position.v[0], position.v[1], position.v[2]);
                     printf_s(buf);
@@ -299,11 +310,55 @@ namespace viscom {
                     else
                         sprintf_s(buf, sizeof(buf), "Invalid pose\n");
                     printf_s(buf);
-
+                    */
                     break;
 
                 case vr::TrackedControllerRole_RightHand:
-                    // incomplete code, look at left hand for reference
+                    char buf[1024];
+                    /*
+                    sprintf_s(buf, sizeof(buf), "\nRight Controller\nx: %.2f y: %.2f z: %.2f\n", position.v[0], position.v[1], position.v[2]);
+                    printf_s(buf);
+
+                    sprintf_s(buf, sizeof(buf), "z Vector: x: %.2f y: %.2f z: %.2f\n", zvector.v[0], zvector.v[1], zvector.v[2]);
+                    printf_s(buf);
+
+                    sprintf_s(buf, sizeof(buf), "qw: %.2f qx: %.2f qy: %.2f qz: %.2f\n", quaternion.w, quaternion.x, quaternion.y, quaternion.z);
+                    printf_s(buf);
+
+                    switch (eTrackingResult) {
+                    case vr::ETrackingResult::TrackingResult_Uninitialized:
+                        sprintf_s(buf, sizeof(buf), "Invalid tracking result\n");
+                        printf_s(buf);
+                        break;
+                    case vr::ETrackingResult::TrackingResult_Calibrating_InProgress:
+                        sprintf_s(buf, sizeof(buf), "Calibrating in progress\n");
+                        printf_s(buf);
+                        break;
+                    case vr::ETrackingResult::TrackingResult_Calibrating_OutOfRange:
+                        sprintf_s(buf, sizeof(buf), "Calibrating Out of range\n");
+                        printf_s(buf);
+                        break;
+                    case vr::ETrackingResult::TrackingResult_Running_OK:
+                        sprintf_s(buf, sizeof(buf), "Running OK\n");
+                        printf_s(buf);
+                        break;
+                    case vr::ETrackingResult::TrackingResult_Running_OutOfRange:
+                        sprintf_s(buf, sizeof(buf), "WARNING: Running Out of Range\n");
+                        printf_s(buf);
+
+                        break;
+                    default:
+                        sprintf_s(buf, sizeof(buf), "Default\n");
+                        printf_s(buf);
+                        break;
+                    }
+
+                    if (bPoseValid)
+                        sprintf_s(buf, sizeof(buf), "Valid pose\n");
+                    else
+                        sprintf_s(buf, sizeof(buf), "Invalid pose\n");
+                    printf_s(buf);
+                    */
                     break;
 
                 case vr::TrackedDeviceClass_TrackingReference:
@@ -329,6 +384,17 @@ namespace viscom {
         return vector;
     }
 
+    //Get the z-vector 
+    vr::HmdVector3_t MasterNode::GetZVector(vr::HmdMatrix34_t matrix) {
+        vr::HmdVector3_t vector;
+
+        vector.v[0] = matrix.m[0][2];
+        vector.v[1] = matrix.m[1][2];
+        vector.v[2] = matrix.m[2][2];
+
+        return vector;
+    }
+
     // Get the quaternion representing the rotation
     vr::HmdQuaternion_t MasterNode::GetRotation(vr::HmdMatrix34_t matrix) {
         vr::HmdQuaternion_t q;
@@ -343,38 +409,45 @@ namespace viscom {
         return q;
     }
 
+    // Get the vector representing the Display position by passing 3 display edges position and zvector
+    vr::HmdVector2_t MasterNode::GetDisplayPosVector(vr::HmdVector3_t position, vr::HmdVector3_t zvector, vr::HmdVector3_t display_lowerLeftCorner, vr::HmdVector3_t display_upperLeftCorner, vr::HmdVector3_t display_lowerRightCorner) {
+        vr::HmdVector3_t d1 = display_lowerLeftCorner;
+        vr::HmdVector3_t d2 = {display_upperLeftCorner.v[0] - display_lowerLeftCorner.v[0], display_upperLeftCorner.v[1] - display_lowerLeftCorner.v[1], display_upperLeftCorner.v[2] - display_lowerLeftCorner.v[2]};
+        vr::HmdVector3_t d3 = {display_lowerRightCorner.v[0]-display_lowerLeftCorner.v[0], display_lowerRightCorner.v[1] - display_lowerLeftCorner.v[1], display_lowerRightCorner.v[2] - display_lowerLeftCorner.v[2]};
+        vr::HmdVector2_t result;
+
+        result.v[0] = (position.v[0] * zvector.v[1] * d3.v[0] * zvector.v[2] - position.v[0] * zvector.v[1] * d3.v[2] * zvector.v[0] - position.v[1] * zvector.v[0] * d3.v[0] * zvector.v[2] + position.v[1] * zvector.v[0] * d3.v[2] * zvector.v[0] - d1.v[0] * zvector.v[1] * d3.v[0] * zvector.v[2] + d1.v[0] * zvector.v[1] * d3.v[2] * zvector.v[0] + d1.v[1] * zvector.v[0] * d3.v[0] * zvector.v[2] - d1.v[1] * zvector.v[0] * d3.v[2] * zvector.v[0] - position.v[0] * zvector.v[2] * d3.v[0] * zvector.v[1] + position.v[0] * zvector.v[2] * d3.v[1] * zvector.v[0] + position.v[2] * zvector.v[0] * d3.v[0] * zvector.v[1] - position.v[2] * zvector.v[0] * d3.v[1] * zvector.v[0] + d1.v[0] * zvector.v[2] * d3.v[0] * zvector.v[1] - d1.v[0] * zvector.v[2] * d3.v[1] * zvector.v[0] - d1.v[2] * zvector.v[0] * d3.v[0] * zvector.v[1] + d1.v[2] * zvector.v[0] * d3.v[1] * zvector.v[0]) / (d2.v[0] * zvector.v[1] * d3.v[0] * zvector.v[2] - d2.v[0] * zvector.v[1] * d3.v[2] * zvector.v[0] - d2.v[1] * zvector.v[0] * d3.v[0] * zvector.v[2] + d2.v[1] * zvector.v[0] * d3.v[2] * zvector.v[0] - d2.v[0] * zvector.v[2] * d3.v[0] * zvector.v[1] + d2.v[0] * zvector.v[2] * d3.v[1] * zvector.v[0] + d2.v[2] * zvector.v[0] * d3.v[0] * zvector.v[1] - d2.v[2] * zvector.v[0] * d3.v[1] * zvector.v[0]);
+        result.v[1] = (position.v[0] * zvector.v[1] * d2.v[0] * zvector.v[2] - position.v[0] * zvector.v[1] * d2.v[2] * zvector.v[0] - position.v[1] * zvector.v[0] * d2.v[0] * zvector.v[2] + position.v[1] * zvector.v[0] * d2.v[2] * zvector.v[0] - d1.v[0] * zvector.v[1] * d2.v[0] * zvector.v[2] + d1.v[0] * zvector.v[1] * d2.v[2] * zvector.v[0] + d1.v[1] * zvector.v[0] * d2.v[0] * zvector.v[2] - d1.v[1] * zvector.v[0] * d2.v[2] * zvector.v[0] - position.v[0] * zvector.v[2] * d2.v[0] * zvector.v[1] + position.v[0] * zvector.v[2] * d2.v[1] * zvector.v[0] + position.v[2] * zvector.v[0] * d2.v[0] * zvector.v[1] - position.v[2] * zvector.v[0] * d2.v[1] * zvector.v[0] + d1.v[0] * zvector.v[2] * d2.v[0] * zvector.v[1] - d1.v[0] * zvector.v[2] * d2.v[1] * zvector.v[0] - d1.v[2] * zvector.v[0] * d2.v[0] * zvector.v[1] + d1.v[2] * zvector.v[0] * d2.v[1] * zvector.v[0]) / (d3.v[0] * zvector.v[1] * d2.v[0] * zvector.v[2] - d3.v[0] * zvector.v[1] * d2.v[2] * zvector.v[0] - d3.v[1] * zvector.v[0] * d2.v[0] * zvector.v[2] + d3.v[1] * zvector.v[0] * d2.v[2] * zvector.v[0] - d3.v[0] * zvector.v[2] * d2.v[0] * zvector.v[1] + d3.v[0] * zvector.v[2] * d2.v[1] * zvector.v[0] + d3.v[2] * zvector.v[0] * d2.v[0] * zvector.v[1] - d3.v[2] * zvector.v[0] * d2.v[1] * zvector.v[0]);
+
+        return result;
+    }
+
     void MasterNode::Draw2D(FrameBuffer& fbo)
     {
-        if (vrInitSucc) {
+        
              
-            fbo.DrawToFBO([]() {
-                ImGui::ShowTestWindow();
+        fbo.DrawToFBO([this]() {
+            ImGui::ShowTestWindow();
 
-                ImGui::SetNextWindowPos(ImVec2(700, 60), ImGuiSetCond_FirstUseEver);
-                ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
-                ImGui::StyleColorsClassic();
-                if (ImGui::Begin("MasterTestWindow", nullptr))
-                {
-                    ImGui::Text("Hello World on Master!");
-                    ImGui::Text("Vr Init succesful");                
+            ImGui::SetNextWindowPos(ImVec2(700, 60), ImGuiSetCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
+            ImGui::StyleColorsClassic();
+            if (ImGui::Begin("MasterTestWindow", nullptr))
+            {
+                ImGui::Text("Hello World on Master!");
+                if (vrInitSucc) {
+                    ImGui::Text("Vr Init succesful");
                 }
-                ImGui::End();
-            });
-        }
-        else {
-            fbo.DrawToFBO([]() {
-                ImGui::ShowTestWindow();
-
-                ImGui::SetNextWindowPos(ImVec2(700, 60), ImGuiSetCond_FirstUseEver);
-                ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
-                ImGui::StyleColorsClassic();
-                if (ImGui::Begin("MasterTestWindow", nullptr))
-                {
-                    ImGui::Text("Hello World on Master!");
-                }
-                ImGui::End();
-            });
-        }
+                ImGui::Text("Controller Position x: %.2f, y: %.2f, z: %.2f", position.v[0], position.v[1], position.v[2]);
+                ImGui::Text("Controller zVector x: %.2f, y: %.2f, z: %.2f", zvector.v[0], zvector.v[1], zvector.v[2]);
+                ImGui::Text("Display Position x: %.2f y %.2f", displayPos.v[0], displayPos.v[1]);
+                              
+            }
+            ImGui::End();
+        });
+        
+       
+        
         ApplicationNodeImplementation::Draw2D(fbo);
     }
 

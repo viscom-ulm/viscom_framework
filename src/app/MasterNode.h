@@ -33,10 +33,19 @@ namespace viscom {
         void ParseTrackingFrame();
 
         vr::HmdVector3_t GetPosition(vr::HmdMatrix34_t matrix);
+        vr::HmdVector3_t GetZVector(vr::HmdMatrix34_t matrix);
         vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix);
+
+        vr::HmdVector2_t GetDisplayPosVector(vr::HmdVector3_t position, vr::HmdVector3_t zvector, vr::HmdVector3_t display_lowerLeftCorner, vr::HmdVector3_t display_upperLeftCorner, vr::HmdVector3_t display_lowerRightCorner);
 
         vr::IVRSystem *m_pHMD;
         vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
+
+        vr::HmdVector3_t position;
+        vr::HmdVector3_t zvector;
+        vr::HmdVector2_t displayPos;
+
+        //float posdx, posdy;
        
         
     };
