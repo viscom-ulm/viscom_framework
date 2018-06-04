@@ -26,7 +26,7 @@ namespace viscom {
         void UpdateFrame(double currenttime,double) override;
 
         bool vrInitSucc = false;
-        bool bAcquireTrackingDataByWaitingForVREvents = false;
+        bool bAcquireTrackingDataByWaitingForVREvents = true;
 
     private:
         bool ProcessVREvent(const vr::VREvent_t & event);
@@ -45,7 +45,7 @@ namespace viscom {
         vr::HmdVector3_t zvector;
         vr::HmdVector2_t displayPos;
 
-        //float posdx, posdy;
+        float posdx, posdy;
        
         
     };
