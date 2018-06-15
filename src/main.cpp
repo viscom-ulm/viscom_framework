@@ -14,6 +14,8 @@
 #include "core/g3log/filesink.h"
 #include "core/ApplicationNodeInternal.h"
 #include "core/initialize.h"
+#include "app/MasterNode.h"
+#include "app/SlaveNode.h"
 
 
 int main(int argc, char** argv)
@@ -34,7 +36,8 @@ int main(int argc, char** argv)
     if (argc > 1) config = viscom::LoadConfiguration(argv[1]);
     else config = viscom::LoadConfiguration("framework.cfg");
 
-    auto appNode = Application_Init(config);
+    auto appNode = Application_Init(config, [](viscom::ApplicationNodeInternal* node) { return std::make_unique<viscom::MasterNode>(node); },
+        [](viscom::ApplicationNodeInternal* node) { return std::make_unique<viscom::SlaveNode>(node); });
 
     // Main loop
     LOG(INFO) << "Started Rendering.";
