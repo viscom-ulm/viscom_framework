@@ -3,13 +3,13 @@
  * @author Sebastian Maisch <sebastian.maisch@uni-ulm.de>
  * @date   2016.11.30
  *
- * @brief  Declaration of the application node implementation common for master and slave nodes.
+ * @brief  Declaration of the application node implementation common for coordinator and worker nodes.
  */
 
 #pragma once
 
-#include "core/ApplicationNodeInternal.h"
-#include "core/ApplicationNodeBase.h"
+#include "core/app_internal/ApplicationNodeInternal.h"
+#include "core/app_internal/ApplicationNodeBase.h"
 
 namespace viscom {
 

@@ -1,24 +1,24 @@
 /**
- * @file   MasterNode.cpp
+ * @file   CoordinatorNode.cpp
  * @author Sebastian Maisch <sebastian.maisch@uni-ulm.de>
  * @date   2016.11.25
  *
- * @brief  Implementation of the master application node.
+ * @brief  Implementation of the coordinator application node.
  */
 
-#include "MasterNode.h"
+#include "CoordinatorNode.h"
 #include <imgui.h>
 
 namespace viscom {
 
-    MasterNode::MasterNode(ApplicationNodeInternal* appNode) :
+    CoordinatorNode::CoordinatorNode(ApplicationNodeInternal* appNode) :
         ApplicationNodeImplementation{ appNode }
     {
     }
 
-    MasterNode::~MasterNode() = default;
+    CoordinatorNode::~CoordinatorNode() = default;
 
-    void MasterNode::Draw2D(FrameBuffer& fbo)
+    void CoordinatorNode::Draw2D(FrameBuffer& fbo)
     {
         fbo.DrawToFBO([]() {
             ImGui::ShowTestWindow();
