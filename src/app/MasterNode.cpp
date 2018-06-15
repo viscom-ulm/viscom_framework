@@ -25,7 +25,8 @@ namespace viscom {
 
             ImGui::SetNextWindowPos(ImVec2(700, 60), ImGuiSetCond_FirstUseEver);
             ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
-            if (ImGui::Begin("MasterTestWindow", nullptr, ImGuiWindowFlags_ShowBorders))
+            ImGui::StyleColorsClassic();
+            if (ImGui::Begin("Select input directory", nullptr, ImGuiWindowFlags_MenuBar))
             {
                 ImGui::Text("Hello World on Master!");
             }
