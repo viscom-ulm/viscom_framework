@@ -9,9 +9,15 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "core/main.h"
 #include "core/open_gl.h"
+#include "core/gfx/GPUProgram.h"
+#include "core/gfx/mesh/Mesh.h"
 
 namespace viscom {
+
+    class GPUProgram;
+    class Mesh;
 
     struct GridVertex
     {

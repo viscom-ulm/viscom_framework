@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "../app/ApplicationNodeImplementation.h"
+#include "app/ApplicationNodeImplementation.h"
 
 namespace viscom {
 
