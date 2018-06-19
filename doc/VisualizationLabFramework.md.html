@@ -1,0 +1,182 @@
+     **HOW TO Visualization Lab Framework**
+       Sebastian Maisch
+
+Preface
+=======
+
+This framework aims to provide an entry point for developing graphical application that will run on the graphics cluster that drives the projection wall in the 'Visualization Lab' at Ulm University.
+The lab currently consists of an array of 3x4 Full HD projectors for each eye and can be run in stereo mode (totaling up the number of projectors to 24).
+The projectors are driven by currently six PCs with two graphics cards each (we will call these PCs **workers**).
+To complete the setup there is one PC that will coordinate the application (called **coordinator** from now on) and is responsible for synchronization.
+
+Despite the direct input at the coordinator the screen of the projection wall has an integrated touch frame.
+In the near future we will also support tracked Steam VR controllers for input.
+
+In this document we want to describe how to use this framework for developing applications.
+Currently this framework can be used in several different configurations which determine the need for external libraries.
+
+The different options are:
+Touch support
+:   Determines if touch support (implemented by TUIO) is included.
+Stand alone mode
+:   The most simple version of this application. This will run the application as a desktop only application but does not rely on external libraries.
+Network mode
+:   This enables the framework to run on multiple PCs. Alternatively you can also run multiple instances on a single PC for testing purposes. This mode requires SGCT as an external library.
+Calibrated Network mode
+:   This mode is the one that is used to run the application on the projection wall. It has all features of *Network mode* and additionally uses calibration information to correctly place the output and do color calibration.
+
+
+Building the Framework
+======================
+
+The framework relies on [CMake](https://cmake.org/) as a build system (version 3.9 is required).
+The build is regularly tested with Visual Studio (we currently use version 15.7) but should also run with Clang or GCC for Linux and MacOS (if this is not the case feel free to do a bug report).
+
+Dependencies
+------------
+
+We try to keep this software self contained.
+This means we will try to have all of the dependencies needed directly included.
+We achieve this by using [git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
+So if you are cloning this as a git repository make sure to initialize submodules recursively with
+~~~ console
+git submodule update --init --recursive
+~~~
+
+For **Network mode** and **Calibrated Network mode** you will need [SGCT](https://github.com/opensgct/sgct) as an additional external dependency.
+
+The complete list of dependencies we have is:
+- [assimp](https://github.com/assimp/assimp): submodule (loading of triangle meshes)
+- [g3log](https://github.com/KjellKod/g3log): submodule (asynchronous logging)
+- [glfw](https://github.com/glfw/glfw): submodule, only in **Stand alone mode** otherwise part of [SGCT](https://github.com/opensgct/sgct).
+- [glm](https://github.com/g-truc/glm): submodule, only in **Stand alone mode** otherwise part of [SGCT](https://github.com/opensgct/sgct).
+- [imgui](https://github.com/ocornut/imgui): submodule (GUI)
+- [stb](https://github.com/nothings/stb): submodule (loading of images)
+- [tuio](https://github.com/viscom-ulm/TUIO11_CPP): submodule, only for **Touch support**
+- [SGCT](https://github.com/opensgct/sgct): external, needed for **Network mode** and **Calibrated Network mode**
+
+Using CMake
+-----------
+
+To create the project files for your local compiler and IDE we use [CMake](https://cmake.org/) (version 3.9 is required).
+For easier use we recommend the CMake GUI that is (at least on Windows environments) shipped with CMake.
+
+To use CMake from the command line use
+~~~ console
+mkdir build
+cd build
+cmake ..
+~~~
+from a console inside the source folder.
+With
+~~~ console
+cmake -D <var>:<type>=<value> ..
+~~~
+you can specify different variables for the build as described in Sec. [CMake Parameters].
+To create projects for a specific IDE (e.g. **Xcode**)
+~~~
+cmake -G Xcode ..
+~~~
+
+In the GUI you need to set the source folder to where you cloned the source code to (there is a `CMakeLists.txt` file in the directory).
+Set the binary / build directory to a subfolder of the source folder (that does not need to exist yet).
+We recommend calling the folder `build`.
+After clicking *Configure* CMake will most likely report an error.
+This is because by default usage of SGCT is enabled.
+To fix this either disable SGCT (uncheck the `VISCOM_USE_SGCT` parameter) or provide the correct include and library paths (see Sec. [Automatically Finding the SGCT Library]).
+There are several other parameters (check the *Grouped* checkbox to get a better overview) and the ones that have an influence on the framework start with `SGCT` or `VISCOM`.
+An overview of the parameters is given in Table [cmakeparams].
+
+### CMake Parameters
+
+There are several parameters for the build.
+Most of them concern other libraries and will not be described here (there is usually no need to change them).
+The most important parameters are listed in Table [cmakeparams].
+Other parameters should not be changed.
+
+Parameter                | Type   | Description
+-------------------------|--------|------------
+`SGCT_DEBUG_LIBRARY`     | PATH   | Path to the debug library of SGCT (see Sec. [Automatically Finding the SGCT Library])
+`SGCT_INCLUDE_DIRECTORY` | PATH   | Include path of SGCT (see Sec. [Automatically Finding the SGCT Library])
+`SGCT_RELEASE_LIBRARY`   | PATH   | Path to the release library of SGCT (see Sec. [Automatically Finding the SGCT Library])
+`VISCOM_APP_NAME`        | STRING | The name of the application (see Sec. [Creating Your Own Application])
+`VISCOM_CONFIG_NAME`     | STRING | The name of the configuration to use (see Sec. [Screen Configurations])
+`VISCOM_OPENGL_PROFILE`  | STRING | The OpenGL profile your application uses.
+`VISCOM_LOCAL_ONLY`      | BOOL   | If this flag ist set , the **Calibrated Network mode** is *disabled*
+`VISCOM_USE_SGCT`        | BOOL   | Switch between **(Calibrated) Network mode** (if set) and **Stand alone mode** (if unset).
+`VISCOM_USE_TUIO`        | BOOL   | Switch for **Touch support**.
+[Table [cmakeparams]: Parameters and types to influence the build.]
+
+The `VISCOM_USE_TUIO` flag is independent of other parameter and enables **TUIO** support.
+The other two flags define the options described in Sec. [Preface].
+An overview how these flags need to be set for each option is given in Table [cmakeparamoptions].
+
+Option                      | `VISCOM_LOCAL_ONLY` | `VISCOM_USE_SGCT`
+----------------------------|---------------------|-----------------
+**Stand alone mode**        |         x           |
+**Network mode**            |         x           |         x
+**Calibrated Network mode** |                     |         x
+[Table [cmakeparamoptions]: Overview how the different build flags influence the framework options.]
+
+Automatically Finding the SGCT Library
+--------------------------------------
+
+The three SGCT paths can be set either by hand or by an environment variable.
+When downloading the SGCT binaries (or building SGCT from source) you will get a folder with (at least) the subfolders:
+- `include`
+- `lib`
+The include folder will be the value to set for `SGCT_INCLUDE_DIRECTORY`, the libraries will be in the `lib` folder.
+When setting the environment variable **`SGCT_ROOT_DIR`** to this folder the three build parameters will be set automatically.
+
+Screen Configurations
+---------------------
+
+When running in **Stand alone mode** the screen configuration is very limited.
+In **Network mode** and **Calibrated Network mode** the screen configurations are managed by SGCT.
+We have several existing configurations that should cover most usecases.
+To choose the configuration you need to set the `VISCOM_CONFIG_NAME` build parameter.
+The most simple configuration (`single`) is a single screen running on a single local PC.
+The next more complicated configuration (`localms`) is two windows running on different machines.
+Its usecase is to test your application in a network context while still only needing a single machine.
+We explain in Sec. [Running an Application] how to start several instances of the application locally using this configuration.
+
+Furthermore there are configurations that will work in the Visualization Lab.
+They run on 7 machines (1 coordinator, 6 workers) with several windows on each machine.
+The number of windows depends on whether stereo mode or mono mode is used.
+These configurations are not part of this document an described in the HOWTO of the lab.
+
+Running an Application
+======================
+
+To find all the correct paths the final application expects there to be a configuration file containing this and other information.
+This file is generated by CMake and for single screen configurations can be ignored (the correct one will be selected automatically).
+When running the application on the cluster this is also the case (assumed you installed the application correctly, which is also done by CMake).
+The default configuration is `framework.cfg`
+
+When running two different nodes locally you need to pass each node the correct configuration file.
+The coordinator node uses the *standard* configuration file and does not need any special attention.
+~~~ console
+ProjectorFramework.exe
+~~~
+The worker node needs to be started with the `framework_local_worker.cfg` configuration file as parameter.
+~~~ console
+ProjectorFramework.exe framework_local_worker.cfg
+~~~
+
+In Visual Studio we also added a new project configuration (*DebugWorker*) to simplify debugging a local worker node.
+To do that you need to tell Visual Studio to start this configuration always with the `framework_local_worker.cfg` parameter.
+
+Creating Your Own Application
+=============================
+
+Programming the Framework
+=========================
+
+General Concepts of the `VISCOMCore` Library
+============================================
+
+Description of Important Classes and Methods of the `VISCOMCore` Library
+========================================================================
+
+
+<!-- Markdeep: --><style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
