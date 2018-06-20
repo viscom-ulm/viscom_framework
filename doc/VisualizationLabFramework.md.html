@@ -1,3 +1,5 @@
+<meta charset="utf-8" lang="en"><style class="fallback">body{visibility:hidden;}</style>
+
      **HOW TO Visualization Lab Framework**
        Sebastian Maisch
 
@@ -169,6 +171,179 @@ To do that you need to tell Visual Studio to start this configuration always wit
 Creating Your Own Application
 =============================
 
+To create your own application using the *Visualization Lab Framework* there are two possibilitys.
+You can either fork the existing framework demo application (https://github.com/viscom-ulm/viscom_framework) or write your own one.
+We recommend forking as a lot of things are done for you then but we will describe writing your own one also.
+
+Forking the Demo Application
+----------------------------
+
+- Go to https://github.com/viscom-ulm/viscom_framework .
+- Download the `.zip` file there or use git to pull the repository.
+- Done.
+- Alternatively: Push the Demo to your own repository.
+
+You can also use the forking provided by github and other services of course.
+If you need to modify the basic parts of your application the next section might help you to do that.
+
+Writing your own Application
+----------------------------
+
+Writing your own application can be divided in several parts.
+First you need a minimal CMake file that uses the `VISCOMCore` library and generates the configuration file from a template.
+Next you need to create a `main` function to start the program.
+As a last step you need to implement the application node which will be explained in more detail in Sec. [Programming the Framework].
+
+### CMake and Configuration File
+
+A minimal working CMake file will look like this:
+~~~ cmake
+cmake_minimum_required(VERSION 3.9)
+SET(APP_NAME ProjectorFramework)
+
+PROJECT(${APP_NAME})
+
+include(${PROJECT_SOURCE_DIR}/extern/fwcore/CMake_core.cmake)
+
+set(VISCOM_CONFIG_NAME "single" CACHE STRING
+        "Name/directory of the configuration files to be used.")
+set(VISCOM_VIRTUAL_SCREEN_X 1920 CACHE INTEGER
+        "Virtual screen size in x direction.")
+set(VISCOM_VIRTUAL_SCREEN_Y 1080 CACHE INTEGER
+        "Virtual screen size in y direction.")
+
+file(GLOB_RECURSE SHADER_FILES ${PROJECT_SOURCE_DIR}/resources/shader/*.*)
+file(GLOB_RECURSE SRC_FILES
+    ${PROJECT_SOURCE_DIR}/src/app/*.h
+    ${PROJECT_SOURCE_DIR}/src/app/*.cpp)
+file(GLOB SRC_FILES_ROOT
+    ${PROJECT_SOURCE_DIR}/src/*.h
+    ${PROJECT_SOURCE_DIR}/src/*.cpp)
+list(APPEND SRC_FILES ${SRC_FILES_ROOT})
+source_group("shader" FILES ${SHADER_FILES})
+
+add_executable(${APP_NAME} ${SRC_FILES} ${SHADER_FILES})
+set_target_properties(${APP_NAME} PROPERTIES OUTPUT_NAME ${VISCOM_APP_NAME})
+set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 17)
+target_include_directories(${APP_NAME} PRIVATE src)
+target_link_libraries(${APP_NAME} VISCOMCore)
+
+set(VISCOM_CONFIG_BASE_DIR "../")
+set(VISCOM_CONFIG_PROGRAM_PROPERTIES
+        "../config/${VISCOM_CONFIG_NAME}/propertiesPrecompute.xml")
+set(VISCOM_CONFIG_SGCT_CONFIG
+        "../data/${VISCOM_CONFIG_NAME}/${VISCOM_CONFIG_NAME}.xml")
+set(VISCOM_CONFIG_PROJECTOR_DATA "../data/${VISCOM_CONFIG_NAME}/ProjectorData.xml")
+set(VISCOM_CONFIG_LOCAL "0")
+configure_file("framework.cfg" "framework.cfg")
+set(VISCOM_CONFIG_LOCAL "1 --slave")
+configure_file("framework.cfg" "framework_local_slave.cfg")
+set(VISCOM_CONFIG_BASE_DIR "./")
+set(VISCOM_CONFIG_PROGRAM_PROPERTIES
+        "../../calibration/config/${VISCOM_CONFIG_NAME}/propertiesPrecompute.xml")
+set(VISCOM_CONFIG_SGCT_CONFIG
+        "../../calibration/data/${VISCOM_CONFIG_NAME}/${VISCOM_CONFIG_NAME}.xml")
+set(VISCOM_CONFIG_PROJECTOR_DATA
+        "../../calibration/data/${VISCOM_CONFIG_NAME}/ProjectorData.xml")
+set(VISCOM_CONFIG_LOCAL "-1")
+configure_file("framework.cfg" "framework_install.cfg")
+
+copy_core_lib_dlls(${APP_NAME})
+
+install(TARGETS ${APP_NAME} RUNTIME DESTINATION
+        ${VISCOM_INSTALL_BASE_PATH}/${VISCOM_APP_NAME})
+install(DIRECTORY resources/ DESTINATION
+        ${VISCOM_INSTALL_BASE_PATH}/${VISCOM_APP_NAME}/resources)
+install(FILES ${CMAKE_BINARY_DIR}/framework_install.cfg DESTINATION
+        ${VISCOM_INSTALL_BASE_PATH}/${VISCOM_APP_NAME} RENAME framework.cfg)
+~~~
+
+Here you can change the name of the Program (currently `ProjectorFramework`) to to any other name.
+
+The configuration file should be this:
+~~~ none
+BASE_DIR= ${VISCOM_CONFIG_BASE_DIR}
+VISCOM_CONFIG= ${VISCOM_CONFIG_NAME}
+PROGRAM_PROPERTIES= ${VISCOM_CONFIG_PROGRAM_PROPERTIES}
+SGCT_CONFIG= ${VISCOM_CONFIG_SGCT_CONFIG}
+PROJECTOR_DATA= ${VISCOM_CONFIG_PROJECTOR_DATA}
+LOCAL= ${VISCOM_CONFIG_LOCAL}
+TUIO_PORT= ${VISCOM_TUIO_PORT}
+VIRTUAL_SCREEN_X= ${VISCOM_VIRTUAL_SCREEN_X}
+VIRTUAL_SCREEN_Y= ${VISCOM_VIRTUAL_SCREEN_Y}
+NEAR_PLANE_SIZE_X= ${VISCOM_NEAR_PLANE_SIZE_X}
+NEAR_PLANE_SIZE_Y= ${VISCOM_NEAR_PLANE_SIZE_Y}
+OPENGL_PROFILE= ${VISCOM_OPENGL_PROFILE}
+~~~
+
+### Main Function
+
+The `main` function needs to take care of setting up the logging, load the configuration file, initialize and start the application.
+
+Logging can be set up like in Listing [logger].
+You can modify which logging levels you want to enable or which sink you want to use.
+There is the g3log default sink available and one implemented by the framework.
+You can also implement your own sinks or use one provided by [g3sinks](https://github.com/KjellKod/g3sinks).
+
+~~~
+int main(int argc, char** argv) {
+    const std::string directory = "./";
+    const std::string name = "viscomlabfw.log";
+    auto worker = g3::LogWorker::createLogWorker();
+    auto handle = worker->addSink(std::make_unique<vku::FileSink>(name,
+        directory, false), &vku::FileSink::fileWrite);
+
+    if constexpr (viscom::DEBUG_MODE) g3::log_levels::enable(WARNING);
+    else g3::log_levels::disable(WARNING);
+
+    initializeLogging(worker.get());
+    ...
+}
+~~~
+[Listing [logger]: Example of how to initialize the logging.]
+
+The next step would be to load the configuration.
+We already provide a loader (`viscom::LoadConfiguration(...)`) for that which you should use.
+It takes the filename of the configuration file to load.
+Listing [config] shows how to load the configuration provided by the command line or alternatively using the default configuration file.
+
+~~~
+int main(int argc, char** argv) {
+    ...
+    viscom::FWConfiguration config;
+    if (argc > 1) config = viscom::LoadConfiguration(argv[1]);
+    else config = viscom::LoadConfiguration("framework.cfg");
+    ...
+}
+~~~
+[Listing [config]: Example of how to load the configuration.]
+
+The last thing needed to run the application is to initialize the nodes and start the main loop.
+A node can be initialized using the `Application_Init(...)` function.
+It takes as parameters the configuration loaded before and two `std::function`s to create your implementations of `viscom::ApplicationNodeBase` for the coordinator and workers.
+These two do **not** necessaryly need to differ.
+Listing [nodeinit] gives an example of how to initialize the nodes.
+In this case we use two different implementations for coordinator and workers but they could be the same.
+In Sec. [Programming the Framework] we will explain how to implement the nodes.
+The main loop is hidden away in our framework and is started by calling the `Render` method of the application created.
+
+~~~
+int main(int argc, char** argv) {
+    ...
+    auto appNode = Application_Init(config,
+        [](viscom::ApplicationNodeInternal* node)
+            { return std::make_unique<viscom::CoordinatorNode>(node); },
+        [](viscom::ApplicationNodeInternal* node)
+            { return std::make_unique<viscom::WorkerNode>(node); }
+    );
+
+    // Main loop
+    appNode->Render();
+    ...
+}
+~~~
+[Listing [nodeinit]: Example of how to initialize the nodes.]
+
 Programming the Framework
 =========================
 
@@ -179,4 +354,5 @@ Description of Important Classes and Methods of the `VISCOMCore` Library
 ========================================================================
 
 
-<!-- Markdeep: --><style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
+<!-- Markdeep: --><script src="https://casual-effects.com/markdeep/markdeep.min.js"></script>
+<!-- <script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script> -->
