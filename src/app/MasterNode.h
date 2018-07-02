@@ -31,6 +31,7 @@ namespace viscom {
     private:
         bool ProcessVREvent(const vr::VREvent_t & event);
         void ParseTrackingFrame();
+        void InitDisplay(vr::HmdVector3_t);
 
         vr::HmdVector3_t GetPosition(vr::HmdMatrix34_t matrix);
         vr::HmdVector3_t GetZVector(vr::HmdMatrix34_t matrix);
@@ -45,6 +46,16 @@ namespace viscom {
         vr::HmdVector3_t zvector;
         vr::HmdVector2_t displayPos;
 
+        
+        bool initDisplay = true;
+        bool displayllset = false;
+        bool displayulset = false;
+        bool displaylrset = false;
+
+        /** first row lowerLeftCorner, second row upperLeftCorner, third row lowerRightCorner **/
+        float displayEdges[3][3] = { {-1.7f, -0.2f, -3.0f },
+                                   { -1.7f, 1.5f, -3.0f }, 
+                                   { 1.8f, -0.28f, -3.0f } };
         float posdx, posdy;
        
         

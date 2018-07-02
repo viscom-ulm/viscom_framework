@@ -49,8 +49,21 @@ namespace viscom {
         else {
             ParseTrackingFrame();
         }
-        
-        displayPos = GetDisplayPosVector(position, zvector, { -1.7f, -0.2f, -3.0f }, { -1.7f, 1.5f, -3.0f }, { 1.8f, -0.28f, -3.0f });
+        if (!initDisplay) {
+            vr::VREvent_t event;
+            vr::TrackedDevicePose_t trackedDevicePose;
+            vr::TrackedDevicePose_t *devicePose = &trackedDevicePose;
+
+            while (m_pHMD->PollNextEventWithPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, &event, sizeof(event), &trackedDevicePose)) {
+                if (event.eventType == vr::VREvent_ButtonPress && event.data.controller.button == vr::k_EButton_SteamVR_Trigger && devicePose->bPoseIsValid) {
+                    InitDisplay(GetPosition(devicePose->mDeviceToAbsoluteTracking));
+                }
+            }              
+            
+        }
+        displayPos = GetDisplayPosVector(position, zvector, { displayEdges[0][0], displayEdges[0][1], displayEdges[0][2]},
+                                                            { displayEdges[1][0], displayEdges[1][1], displayEdges[1][2] },
+                                                            { displayEdges[2][0], displayEdges[2][1], displayEdges[2][2] });
         posdx = displayPos.v[0] * 2 - 1;
         posdy = displayPos.v[1] * 2 - 1;
 
@@ -442,6 +455,23 @@ namespace viscom {
                 ImGui::Text("Controller Position x: %.2f, y: %.2f, z: %.2f", position.v[0], position.v[1], position.v[2]);
                 ImGui::Text("Controller zVector x: %.2f, y: %.2f, z: %.2f", zvector.v[0], zvector.v[1], zvector.v[2]);
                 ImGui::Text("Display Position x: %.2f y %.2f", displayPos.v[0], displayPos.v[1]);
+                if (ImGui::Button("Init Display")) {
+                    initDisplay = false;
+                    displayllset = false;
+                    displayulset = false;
+                    displaylrset = false;
+                }
+                if (!initDisplay) {
+                    if (!displayllset) {
+                        ImGui::Text("Touch the lower left Display corner and press the Trigger");
+                    }
+                    if (displayllset & !displayulset) {
+                        ImGui::Text("Touch the upper left Display corner and press the Trigger");
+                    }
+                    if (displayllset && displayulset && !displaylrset) {
+                        ImGui::Text("Touch the lower right Display corner and press the Trigger");
+                    }
+                }
                               
             }
             ImGui::End();
@@ -450,6 +480,27 @@ namespace viscom {
        
         
         ApplicationNodeImplementation::Draw2D(fbo);
+    }
+
+    void MasterNode::InitDisplay(vr::HmdVector3_t dpos) {
+        if (!displayllset) {     
+            dpos.v[0] = displayEdges[0][0];                
+            dpos.v[1] = displayEdges[0][1];                
+            dpos.v[1] = displayEdges[0][2];
+            return;
+        }
+        if (!displayulset) {
+            dpos.v[0] = displayEdges[0][0];
+            dpos.v[1] = displayEdges[0][1];
+            dpos.v[1] = displayEdges[0][2];
+            return;
+        }
+        if (!displaylrset) {
+            dpos.v[0] = displayEdges[0][0];
+            dpos.v[1] = displayEdges[0][1];
+            dpos.v[1] = displayEdges[0][2];            
+        }
+        initDisplay = true;
     }
 
 }
