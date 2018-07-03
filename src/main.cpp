@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     const std::string directory = "./";
     const std::string name = "viscomlabfw.log";
     auto worker = g3::LogWorker::createLogWorker();
-    auto handle = worker->addSink(std::make_unique<vku::FileSink>(name, directory, false), &vku::FileSink::fileWrite);
+    auto handle = worker->addSink(std::make_unique<viscom::FileSink>(name, directory, false), &viscom::FileSink::fileWrite);
 
     if constexpr (viscom::DEBUG_MODE) g3::log_levels::enable(WARNING);
     else g3::log_levels::disable(WARNING);

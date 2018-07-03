@@ -15,6 +15,7 @@ Despite the direct input at the coordinator the screen of the projection wall ha
 In the near future we will also support tracked Steam VR controllers for input.
 
 In this document we want to describe how to use this framework for developing applications.
+This is ment to be a more or less complete documentation but you will probably not need most of the stuff described here when using the framework at home.
 Currently this framework can be used in several different configurations which determine the need for external libraries.
 
 The different options are:
@@ -88,6 +89,7 @@ This is because by default usage of SGCT is enabled.
 To fix this either disable SGCT (uncheck the `VISCOM_USE_SGCT` parameter) or provide the correct include and library paths (see Sec. [Automatically Finding the SGCT Library]).
 There are several other parameters (check the *Grouped* checkbox to get a better overview) and the ones that have an influence on the framework start with `SGCT` or `VISCOM`.
 An overview of the parameters is given in Table [cmakeparams].
+After setting the parameters correctly press *Configure* and *Generate*.
 
 ### CMake Parameters
 
@@ -346,6 +348,87 @@ int main(int argc, char** argv) {
 
 Programming the Framework
 =========================
+
+After creating your application in Sec. [Writing your own Application] you need to implement your nodes.
+This is where everything in your application happends so we put it in an extra section.
+
+All nodes need to derive from `ApplicationNodeBase`.
+This is a base class that on one hand provides all entry points your application can hook into as `virtual` methods while also providing access to the frameworks internal information.
+There is basically three ways to create these nodes that might make sense in some case:
+- **All Nodes use the same class**: In this case all nodes will do the same calculations and in the end display the same image (or at least a part of the same image).
+- **Coordinator and worker nodes have completely separate classes**: The total opposite of the last possibility.
+  In this case the coordinator will show something *unrelated* to the worker nodes.
+  You can still share information by using synchonization features but no code is shared.
+- **Coordinator and worker nodes have classes that share a common base class**: This is probably the most common usecase and also the one provided by default.
+  In this case the shared part can be implemented in the common base class (that of course needs to implement `ApplicationNodeBase`) and specific parts can be implemented in they derived classes.
+  This allows for example to show GUI overlays on the coordinator node that are not shown on the workers. Figure [nodediagram] shows the hierarchy of this as implemented in our default implementation.
+
+***********************************************
+*          +-----------------------+          *
+*          |  ApplicationNodeBase  |          *
+*          +-----------------------+          *
+*                        ^                    *
+*                        |                    *
+*     +---------------------------------+     *
+*     |  ApplicationNodeImplementation  |     *
+*     +---------------------------------+     *
+*                        ^                    *
+*                        |                    *
+*            +-----------+---------+          *
+*            |                     |          *
+*  +-------------------+   +--------------+   *
+*  |  CoordinatorNode  |   |  WorkerNode  |   *
+*  +-------------------+   +--------------+   *
+***********************************************
+[Figure [nodediagram]: Class diagram of coordinator and worker nodes sharing the same base class.]
+
+`ApplicationNodeBase` has 22 `virtual` methods that can (but do not need to) be overriden to add functionality to your application nodes.
+These methods can be divided into four groups:
+- Application workflow
+- Input
+- Rendering
+- Data transfer / synchronization
+
+Application workflow
+--------------------
+
+The `virtual` methods to hook into the application workflow are
+~~~
+virtual void PreWindow();
+virtual void InitOpenGL();
+virtual void UpdateFrame(double currentTime, double elapsedTime);
+virtual void CleanUp();
+~~~
+
+~~~
+virtual bool KeyboardCallback(int key, int scancode, int action, int mods);
+virtual bool CharCallback(unsigned int character, int mods);
+virtual bool MouseButtonCallback(int button, int action);
+virtual bool MousePosCallback(double x, double y);
+virtual bool MouseScrollCallback(double xoffset, double yoffset);
+
+virtual bool AddTuioCursor(TUIO::TuioCursor *tcur);
+virtual bool UpdateTuioCursor(TUIO::TuioCursor *tcur);
+virtual bool RemoveTuioCursor(TUIO::TuioCursor *tcur);
+~~~
+
+~~~
+virtual void ClearBuffer(FrameBuffer& fbo);
+virtual void DrawFrame(FrameBuffer& fbo);
+virtual void Draw2D(FrameBuffer& fbo);
+~~~
+
+~~~
+virtual bool DataTransferCallback(void* receivedData, int receivedLength, std::uint16_t packageID, int clientID);
+virtual bool DataAcknowledgeCallback(std::uint16_t packageID, int clientID);
+virtual bool DataTransferStatusCallback(bool connected, int clientID);
+
+virtual void PreSync();
+virtual void UpdateSyncedInfo();
+virtual void EncodeData();
+virtual void DecodeData();
+~~~
+
 
 General Concepts of the `VISCOMCore` Library
 ============================================
