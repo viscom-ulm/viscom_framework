@@ -7,6 +7,8 @@
  */
 
 #include "MasterNode.h"
+#include <iostream>
+#include <fstream>
 #include <imgui.h>
 #include <openvr.h>
 #include <glm\gtc\matrix_transform.hpp>
@@ -26,6 +28,7 @@ namespace viscom {
         m_pHMD = vr::VR_Init(&peError, vr::EVRApplicationType::VRApplication_Background);
         if (peError == vr::VRInitError_None) {
             vrInitSucc = true;
+            OutputDevices();
         }
 
         ApplicationNodeImplementation::InitOpenGL();
@@ -452,15 +455,19 @@ namespace viscom {
                 if (vrInitSucc) {
                     ImGui::Text("Vr Init succesful");
                 }
+                ImGui::NewLine();
                 ImGui::Text("Controller Position x: %.2f, y: %.2f, z: %.2f", position.v[0], position.v[1], position.v[2]);
                 ImGui::Text("Controller zVector x: %.2f, y: %.2f, z: %.2f", zvector.v[0], zvector.v[1], zvector.v[2]);
                 ImGui::Text("Display Position x: %.2f y %.2f", displayPos.v[0], displayPos.v[1]);
+
+                ImGui::NewLine();
                 if (ImGui::Button("Init Display")) {
                     initDisplay = false;
                     displayllset = false;
                     displayulset = false;
                     displaylrset = false;
                 }
+                ImGui::SameLine();
                 if (!initDisplay) {
                     if (!displayllset) {
                         ImGui::Text("Touch the lower left Display corner and press the Trigger");
@@ -472,6 +479,20 @@ namespace viscom {
                         ImGui::Text("Touch the lower right Display corner and press the Trigger");
                     }
                 }
+                if (ImGui::Button("Load Display")) {
+                    InitDisplayFromFile();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Save Display")) {
+                    WriteInitDisplayToFile();
+                }
+                ImGui::NewLine();
+                ImGui::Text("Connected devices:","");
+                for (auto &device : devices) {
+                    ImGui::Text(device.c_str());
+                }
+                
+
                               
             }
             ImGui::End();
@@ -501,6 +522,63 @@ namespace viscom {
             dpos.v[1] = displayEdges[0][2];            
         }
         initDisplay = true;
+    }
+
+    void MasterNode::InitDisplayFromFile() {
+        std::ifstream myfile("displayEdges.txt");
+        if (myfile.is_open()) {
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    myfile >> displayEdges[i][j];
+                }
+            }
+        }
+    }
+
+    void MasterNode::WriteInitDisplayToFile() {
+        std::ofstream myfile;
+        myfile.open("displayEdges.txt");
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                myfile << displayEdges[i][j] << " ";
+
+            }            
+        }
+        myfile.close();
+    }
+
+    void MasterNode::OutputDevices() {
+        
+        for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++) {
+            if (!m_pHMD->IsTrackedDeviceConnected(unDevice))
+                continue;
+            vr::ETrackedDeviceClass trackedDeviceClass = vr::VRSystem()->GetTrackedDeviceClass(unDevice);
+            switch (trackedDeviceClass) {
+            case(vr::ETrackedDeviceClass::TrackedDeviceClass_Controller):
+                devices.push_back("Controller");
+                break;
+            case(vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker):
+                devices.push_back("GenericTracker");
+                break;
+            case(vr::ETrackedDeviceClass::TrackedDeviceClass_HMD):
+                devices.push_back("HMD");
+                break;
+            case(vr::ETrackedDeviceClass::TrackedDeviceClass_TrackingReference):
+                devices.push_back("TrackingRef");
+                break;
+            case(vr::ETrackedDeviceClass::TrackedDeviceClass_DisplayRedirect):
+                devices.push_back("DisplayRedirect");
+                break;
+            case(vr::ETrackedDeviceClass::TrackedDeviceClass_Invalid):
+                devices.push_back("Invalid");
+                break;
+            }
+                
+
+            
+
+        }
     }
 
 }

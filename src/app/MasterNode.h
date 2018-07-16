@@ -33,6 +33,12 @@ namespace viscom {
         void ParseTrackingFrame();
         void InitDisplay(vr::HmdVector3_t);
 
+        void InitDisplayFromFile();
+
+        void WriteInitDisplayToFile();
+
+        void OutputDevices();
+
         vr::HmdVector3_t GetPosition(vr::HmdMatrix34_t matrix);
         vr::HmdVector3_t GetZVector(vr::HmdMatrix34_t matrix);
         vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix);
@@ -57,6 +63,8 @@ namespace viscom {
                                    { -1.7f, 1.5f, -3.0f }, 
                                    { 1.8f, -0.28f, -3.0f } };
         float posdx, posdy;
+        std::vector <std::string> devices;
+        
        
         
     };
