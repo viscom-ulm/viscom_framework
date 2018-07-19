@@ -39,6 +39,8 @@ namespace viscom {
 
         void OutputDevices();
 
+        void HandleSCGT(glm::vec3 pos, glm::quat q);
+                
         vr::HmdVector3_t GetPosition(vr::HmdMatrix34_t matrix);
         vr::HmdVector3_t GetZVector(vr::HmdMatrix34_t matrix);
         vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix);

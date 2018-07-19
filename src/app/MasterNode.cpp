@@ -12,6 +12,7 @@
 #include <imgui.h>
 #include <openvr.h>
 #include <glm\gtc\matrix_transform.hpp>
+#include <sgct.h>
 
 namespace viscom {
 
@@ -386,6 +387,10 @@ namespace viscom {
                 }
 
                 break;
+
+            case vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker:
+                HandleSCGT(glm::vec3(position.v[0], position.v[1],position.v[2]), glm::dquat(quaternion.w, quaternion.x, quaternion.y, quaternion.z));
+                break;
             }
         }
     }
@@ -581,4 +586,10 @@ namespace viscom {
         }
     }
 
+    void MasterNode::HandleSCGT(glm::vec3 pos, glm::quat q) {
+        
+        GetApplication()->GetEngine()->getDefaultUserPtr()->setPos(pos);
+        GetApplication()->GetEngine()->getDefaultUserPtr()->setOrientation(q);
+               
+    }
 }
