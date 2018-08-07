@@ -55,6 +55,9 @@ namespace viscom {
         vr::HmdVector3_t position;
         vr::HmdVector3_t zvector;
         vr::HmdVector2_t displayPos;
+		vr::HmdVector3_t trackerPos;
+		vr::HmdVector3_t midDisplayPos;
+		vr::HmdVector3_t sgctTrackerPos;
 
         
         bool initDisplay = true;

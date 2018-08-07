@@ -218,7 +218,7 @@ namespace viscom {
             vr::TrackedDevicePose_t *devicePose = &trackedDevicePose;
 
             vr::VRControllerState_t controllerState;
-            vr::VRControllerState_t *ontrollerState_ptr = &controllerState;
+            vr::VRControllerState_t *controllerState_ptr = &controllerState;
 
             
             vr::HmdQuaternion_t quaternion;
@@ -239,7 +239,7 @@ namespace viscom {
                 // print stuff for the HMD here, see controller stuff in next case block
 
                 // get pose relative to the safe bounds defined by the user (only if using TrackingUniverseStanding)
-                vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, 0, &trackedDevicePose, 1);
+                vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
 
                 // get the position and rotation
                 position = GetPosition(devicePose->mDeviceToAbsoluteTracking);
@@ -407,9 +407,9 @@ namespace viscom {
                 break;
 
             case vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker:
-				vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseSeated, unDevice, &controllerState, sizeof(controllerState), &trackedDevicePose);
+				vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseStanding, unDevice, &controllerState, sizeof(controllerState), &trackedDevicePose);
 
-				position = GetPosition(devicePose->mDeviceToAbsoluteTracking);
+				trackerPos = GetPosition(devicePose->mDeviceToAbsoluteTracking);
 				zvector = GetZVector(devicePose->mDeviceToAbsoluteTracking);
 				quaternion = GetRotation(devicePose->mDeviceToAbsoluteTracking);
 
@@ -418,7 +418,7 @@ namespace viscom {
 				eTrackingResult = trackedDevicePose.eTrackingResult;
 				bPoseValid = trackedDevicePose.bPoseIsValid;
 				if (bPoseValid) {
-					HandleSCGT(glm::vec3(position.v[0], position.v[1],position.v[2]), glm::dquat(quaternion.w, quaternion.x, quaternion.y, quaternion.z));
+					HandleSCGT(glm::vec3(trackerPos.v[0], trackerPos.v[1],trackerPos.v[2]), glm::dquat(quaternion.w, quaternion.x, quaternion.y, quaternion.z));
 				}
                 
                 break;
@@ -462,7 +462,7 @@ namespace viscom {
         return q;
     }
 
-    // Get the vector representing the Display position by passing 3 display edges position and zvector
+    // Get the vector representing the Display position (x,y) by passing 3 display edges position and zvector
     vr::HmdVector2_t MasterNode::GetDisplayPosVector(vr::HmdVector3_t position, vr::HmdVector3_t zvector, vr::HmdVector3_t display_lowerLeftCorner, vr::HmdVector3_t display_upperLeftCorner, vr::HmdVector3_t display_lowerRightCorner) {
         vr::HmdVector3_t d1 = display_lowerLeftCorner;
         vr::HmdVector3_t d2 = {display_upperLeftCorner.v[0] - display_lowerLeftCorner.v[0], display_upperLeftCorner.v[1] - display_lowerLeftCorner.v[1], display_upperLeftCorner.v[2] - display_lowerLeftCorner.v[2]};
@@ -471,7 +471,9 @@ namespace viscom {
 
         result.v[1] = (position.v[0] * zvector.v[1] * d3.v[0] * zvector.v[2] - position.v[0] * zvector.v[1] * d3.v[2] * zvector.v[0] - position.v[1] * zvector.v[0] * d3.v[0] * zvector.v[2] + position.v[1] * zvector.v[0] * d3.v[2] * zvector.v[0] - d1.v[0] * zvector.v[1] * d3.v[0] * zvector.v[2] + d1.v[0] * zvector.v[1] * d3.v[2] * zvector.v[0] + d1.v[1] * zvector.v[0] * d3.v[0] * zvector.v[2] - d1.v[1] * zvector.v[0] * d3.v[2] * zvector.v[0] - position.v[0] * zvector.v[2] * d3.v[0] * zvector.v[1] + position.v[0] * zvector.v[2] * d3.v[1] * zvector.v[0] + position.v[2] * zvector.v[0] * d3.v[0] * zvector.v[1] - position.v[2] * zvector.v[0] * d3.v[1] * zvector.v[0] + d1.v[0] * zvector.v[2] * d3.v[0] * zvector.v[1] - d1.v[0] * zvector.v[2] * d3.v[1] * zvector.v[0] - d1.v[2] * zvector.v[0] * d3.v[0] * zvector.v[1] + d1.v[2] * zvector.v[0] * d3.v[1] * zvector.v[0]) / (d2.v[0] * zvector.v[1] * d3.v[0] * zvector.v[2] - d2.v[0] * zvector.v[1] * d3.v[2] * zvector.v[0] - d2.v[1] * zvector.v[0] * d3.v[0] * zvector.v[2] + d2.v[1] * zvector.v[0] * d3.v[2] * zvector.v[0] - d2.v[0] * zvector.v[2] * d3.v[0] * zvector.v[1] + d2.v[0] * zvector.v[2] * d3.v[1] * zvector.v[0] + d2.v[2] * zvector.v[0] * d3.v[0] * zvector.v[1] - d2.v[2] * zvector.v[0] * d3.v[1] * zvector.v[0]);
         result.v[0] = (position.v[0] * zvector.v[1] * d2.v[0] * zvector.v[2] - position.v[0] * zvector.v[1] * d2.v[2] * zvector.v[0] - position.v[1] * zvector.v[0] * d2.v[0] * zvector.v[2] + position.v[1] * zvector.v[0] * d2.v[2] * zvector.v[0] - d1.v[0] * zvector.v[1] * d2.v[0] * zvector.v[2] + d1.v[0] * zvector.v[1] * d2.v[2] * zvector.v[0] + d1.v[1] * zvector.v[0] * d2.v[0] * zvector.v[2] - d1.v[1] * zvector.v[0] * d2.v[2] * zvector.v[0] - position.v[0] * zvector.v[2] * d2.v[0] * zvector.v[1] + position.v[0] * zvector.v[2] * d2.v[1] * zvector.v[0] + position.v[2] * zvector.v[0] * d2.v[0] * zvector.v[1] - position.v[2] * zvector.v[0] * d2.v[1] * zvector.v[0] + d1.v[0] * zvector.v[2] * d2.v[0] * zvector.v[1] - d1.v[0] * zvector.v[2] * d2.v[1] * zvector.v[0] - d1.v[2] * zvector.v[0] * d2.v[0] * zvector.v[1] + d1.v[2] * zvector.v[0] * d2.v[1] * zvector.v[0]) / (d3.v[0] * zvector.v[1] * d2.v[0] * zvector.v[2] - d3.v[0] * zvector.v[1] * d2.v[2] * zvector.v[0] - d3.v[1] * zvector.v[0] * d2.v[0] * zvector.v[2] + d3.v[1] * zvector.v[0] * d2.v[2] * zvector.v[0] - d3.v[0] * zvector.v[2] * d2.v[0] * zvector.v[1] + d3.v[0] * zvector.v[2] * d2.v[1] * zvector.v[0] + d3.v[2] * zvector.v[0] * d2.v[0] * zvector.v[1] - d3.v[2] * zvector.v[0] * d2.v[1] * zvector.v[0]);
-
+		midDisplayPos.v[0] = d1.v[0] + 0.5f * d2.v[0] + 0.5f * d3.v[0];
+		midDisplayPos.v[1] = d1.v[1] + 0.5f * d2.v[1] + 0.5f * d3.v[1];
+		midDisplayPos.v[2] = d1.v[2] + 0.5f * d2.v[2] + 0.5f * d3.v[2];
         return result;
     }
 
@@ -494,7 +496,10 @@ namespace viscom {
                 ImGui::NewLine();
                 ImGui::Text("Controller Position x: %.2f, y: %.2f, z: %.2f", position.v[0], position.v[1], position.v[2]);
                 ImGui::Text("Controller zVector x: %.2f, y: %.2f, z: %.2f", zvector.v[0], zvector.v[1], zvector.v[2]);
-                ImGui::Text("Display Position x: %.2f y %.2f", displayPos.v[0], displayPos.v[1]);
+                ImGui::Text("Display Pointer Position x: %.2f y %.2f", displayPos.v[0], displayPos.v[1]);
+				ImGui::Text("midDisplaypos x: %.2f y: %.2f z: %.2f", midDisplayPos.v[0], midDisplayPos.v[1], midDisplayPos.v[2]);
+				ImGui::Text("Tracker Position x: %.2f, y: %.2f, z: %.2f", trackerPos.v[0], trackerPos.v[1], trackerPos.v[2]);
+				ImGui::Text("SGCT Tracker Position x: %.2f, y: %.2f, z: %.2f", sgctTrackerPos.v[0], sgctTrackerPos.v[1], sgctTrackerPos.v[2]);
 
                 ImGui::NewLine();
                 if (ImGui::Button("Init Display")) {
@@ -600,9 +605,9 @@ namespace viscom {
         }
         if (!displayulset) {
             float f = (displayEdges[0][0] * (displayEdges[2][2] - displayEdges[0][2]) - displayEdges[0][2] * (displayEdges[2][0] - displayEdges[0][0]) - cpos.v[0] * (displayEdges[2][2] - displayEdges[0][2]) + cpos.v[2] * (displayEdges[2][0] - displayEdges[0][0])) / (cz.v[0] * (displayEdges[2][2] - displayEdges[0][2]) - cz.v[2] * (displayEdges[2][0] - displayEdges[0][0]));
-            displayEdges[1][0] = cpos.v[0] + f * cz.v[0];
+			displayEdges[1][0] = displayEdges[0][0]; //cpos.v[0] + f * cz.v[0];
             displayEdges[1][1] = cpos.v[1] + f * cz.v[1];
-            displayEdges[1][2] = cpos.v[2] + f * cz.v[2];
+			displayEdges[1][2] = displayEdges[0][2]; //cpos.v[2] + f * cz.v[2];
             displayulset = true;
         }
         initDisplay = true;
@@ -668,7 +673,10 @@ namespace viscom {
 
 	//TODO fix wrong values
     void MasterNode::HandleSCGT(glm::vec3 pos, glm::quat q) {
-        
+		pos.x -= midDisplayPos.v[0];
+		pos.y -= midDisplayPos.v[1];
+		pos.z -= midDisplayPos.v[2];
+		sgctTrackerPos = { pos.x, pos.y, pos.z };
         GetApplication()->GetEngine()->getDefaultUserPtr()->setPos(pos);
         GetApplication()->GetEngine()->getDefaultUserPtr()->setOrientation(q);
                
