@@ -25,7 +25,7 @@ namespace viscom {
 
     void MasterNode::InitOpenGL() {
         vr::EVRInitError peError;
-        // VRApplication_Scene (starts SteamVR no proper data) VRApplication_Overlay (starts SteamVR no SteamVRHome)  VRApplication_Background (doesn't start SteamVR uses SteamVRHome
+        // VRApplication_Scene (starts SteamVR no proper data) VRApplication_Overlay (starts SteamVR no SteamVRHome)  VRApplication_Background (doesn't start SteamVR uses SteamVRHome)
         m_pHMD = vr::VR_Init(&peError, vr::EVRApplicationType::VRApplication_Background);
         if (peError == vr::VRInitError_None) {
             vrInitSucc = true;
@@ -41,7 +41,36 @@ namespace viscom {
     }
 
     void MasterNode::UpdateFrame(double currenttime, double elapsedtime) {
-        if (bAcquireTrackingDataByWaitingForVREvents) {
+        if (!initDisplay) {
+            vr::VREvent_t event;
+            vr::TrackedDevicePose_t trackedDevicePose;
+            vr::TrackedDevicePose_t *devicePose = &trackedDevicePose;
+			
+			if (!initfloor) {
+				while (m_pHMD->PollNextEvent( &event, sizeof(event))) {
+					if (event.eventType == vr::VREvent_ButtonPress && event.data.controller.button == vr::k_EButton_SteamVR_Trigger) {	
+						vr::VRControllerState_t controllerState;
+						vr::VRControllerState_t *controllerState_ptr = &controllerState;
+						
+						vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseStanding,event.trackedDeviceIndex,&controllerState,sizeof(controllerState),&trackedDevicePose);
+
+						InitDisplay(GetPosition(devicePose->mDeviceToAbsoluteTracking));
+					}
+				}
+			}
+			else {
+				while (m_pHMD->PollNextEvent( &event, sizeof(event))) {
+					if (event.eventType == vr::VREvent_ButtonPress && event.data.controller.button == vr::k_EButton_SteamVR_Trigger) {
+						vr::VRControllerState_t controllerState;
+						vr::VRControllerState_t *controllerState_ptr = &controllerState;
+
+						vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseStanding, event.trackedDeviceIndex, &controllerState, sizeof(controllerState), &trackedDevicePose);
+						InitDisplayFloor(GetPosition(trackedDevicePose.mDeviceToAbsoluteTracking), GetZVector(trackedDevicePose.mDeviceToAbsoluteTracking));
+					}
+				}
+			}
+        }		
+		if (bAcquireTrackingDataByWaitingForVREvents) {
             vr::VREvent_t event;
             while (m_pHMD->PollNextEvent(&event, sizeof(event))) {
                 if (!ProcessVREvent(event)) {
@@ -53,18 +82,7 @@ namespace viscom {
         else {
             ParseTrackingFrame();
         }
-        if (!initDisplay) {
-            vr::VREvent_t event;
-            vr::TrackedDevicePose_t trackedDevicePose;
-            vr::TrackedDevicePose_t *devicePose = &trackedDevicePose;
-
-            while (m_pHMD->PollNextEventWithPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, &event, sizeof(event), &trackedDevicePose)) {
-                if (event.eventType == vr::VREvent_ButtonPress && event.data.controller.button == vr::k_EButton_SteamVR_Trigger && devicePose->bPoseIsValid) {
-                    InitDisplay(GetPosition(devicePose->mDeviceToAbsoluteTracking));
-                }
-            }              
-            
-        }
+        
         displayPos = GetDisplayPosVector(position, zvector, { displayEdges[0][0], displayEdges[0][1], displayEdges[0][2]},
                                                             { displayEdges[1][0], displayEdges[1][1], displayEdges[1][2] },
                                                             { displayEdges[2][0], displayEdges[2][1], displayEdges[2][2] });
@@ -268,7 +286,7 @@ namespace viscom {
                 // Simliar to the HMD case block above, please adapt as you like
                 // to get away with code duplication and general confusion
 
-                vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseSeated, unDevice, &controllerState, sizeof(controllerState), &trackedDevicePose);
+                vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseStanding, unDevice, &controllerState, sizeof(controllerState), &trackedDevicePose);
 
                 position = GetPosition(devicePose->mDeviceToAbsoluteTracking);
                 zvector = GetZVector(devicePose->mDeviceToAbsoluteTracking);
@@ -389,7 +407,20 @@ namespace viscom {
                 break;
 
             case vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker:
-                HandleSCGT(glm::vec3(position.v[0], position.v[1],position.v[2]), glm::dquat(quaternion.w, quaternion.x, quaternion.y, quaternion.z));
+				vr::VRSystem()->GetControllerStateWithPose(vr::TrackingUniverseSeated, unDevice, &controllerState, sizeof(controllerState), &trackedDevicePose);
+
+				position = GetPosition(devicePose->mDeviceToAbsoluteTracking);
+				zvector = GetZVector(devicePose->mDeviceToAbsoluteTracking);
+				quaternion = GetRotation(devicePose->mDeviceToAbsoluteTracking);
+
+				vVel = trackedDevicePose.vVelocity;
+				vAngVel = trackedDevicePose.vAngularVelocity;
+				eTrackingResult = trackedDevicePose.eTrackingResult;
+				bPoseValid = trackedDevicePose.bPoseIsValid;
+				if (bPoseValid) {
+					HandleSCGT(glm::vec3(position.v[0], position.v[1],position.v[2]), glm::dquat(quaternion.w, quaternion.x, quaternion.y, quaternion.z));
+				}
+                
                 break;
             }
         }
@@ -474,15 +505,29 @@ namespace viscom {
                 }
                 ImGui::SameLine();
                 if (!initDisplay) {
-                    if (!displayllset) {
-                        ImGui::Text("Touch the lower left Display corner and press the Trigger");
-                    }
-                    if (displayllset & !displayulset) {
-                        ImGui::Text("Touch the upper left Display corner and press the Trigger");
-                    }
-                    if (displayllset && displayulset && !displaylrset) {
-                        ImGui::Text("Touch the lower right Display corner and press the Trigger");
-                    }
+					if (initfloor) {
+						if (!displayllset) {
+							ImGui::Text("Touch the lower left Display corner and press the Trigger");
+						}
+						if (displayllset & !displaylrset) {
+							ImGui::Text("Touch the lower right Display corner and press the Trigger");
+						}
+						if (displayllset && !displayulset && displaylrset) {
+							ImGui::Text("Touch the upper left Display corner and press the Trigger");
+						}
+					}
+					else {
+						if (!displayllset) {
+							ImGui::Text("Touch the lower left Display corner and press the Trigger");
+						}
+						if (displayllset & !displayulset) {
+							ImGui::Text("Touch the upper left Display corner and press the Trigger");
+						}
+						if (displayllset && displayulset && !displaylrset) {
+							ImGui::Text("Touch the lower right Display corner and press the Trigger");
+						}
+					}
+                    
                 }
                 if (ImGui::Button("Load Display")) {
                     InitDisplayFromFile();
@@ -491,11 +536,17 @@ namespace viscom {
                 if (ImGui::Button("Save Display")) {
                     WriteInitDisplayToFile();
                 }
+				ImGui::Checkbox("init with Floor", &initfloor);
                 ImGui::NewLine();
                 ImGui::Text("Connected devices:","");
                 for (auto &device : devices) {
                     ImGui::Text(device.c_str());
                 }
+				ImGui::NewLine();
+				ImGui::Text("Display Edges");
+				ImGui::Text("lower left x: %.2f y: %.2f z: %.2f ", displayEdges[0][0], displayEdges[0][1], displayEdges[0][2]);
+				ImGui::Text("upper left x: %.2f y: %.2f z: %.2f ", displayEdges[1][0], displayEdges[1][1], displayEdges[1][2]);
+				ImGui::Text("lower left x: %.2f y: %.2f z: %.2f ", displayEdges[2][0], displayEdges[2][1], displayEdges[2][2]);
                 
 
                               
@@ -510,21 +561,49 @@ namespace viscom {
 
     void MasterNode::InitDisplay(vr::HmdVector3_t dpos) {
         if (!displayllset) {     
-            dpos.v[0] = displayEdges[0][0];                
-            dpos.v[1] = displayEdges[0][1];                
-            dpos.v[1] = displayEdges[0][2];
+            displayEdges[0][0] = dpos.v[0];
+            displayEdges[0][1] = dpos.v[1];
+            displayEdges[0][2] = dpos.v[1];
+            displayllset = true;
             return;
         }
         if (!displayulset) {
-            dpos.v[0] = displayEdges[0][0];
-            dpos.v[1] = displayEdges[0][1];
-            dpos.v[1] = displayEdges[0][2];
+            displayEdges[1][0] = dpos.v[0];
+            displayEdges[1][1] = dpos.v[1];
+            displayEdges[1][2] = dpos.v[1];
+            displayulset = true;
             return;
         }
         if (!displaylrset) {
-            dpos.v[0] = displayEdges[0][0];
-            dpos.v[1] = displayEdges[0][1];
-            dpos.v[1] = displayEdges[0][2];            
+            displayEdges[2][0] = dpos.v[0];
+            displayEdges[2][1] = dpos.v[1];
+            displayEdges[2][2] = dpos.v[1];   
+            displaylrset = true;
+        }
+        initDisplay = true;
+    }
+    void MasterNode::InitDisplayFloor(vr::HmdVector3_t cpos, vr::HmdVector3_t cz) {
+        float t = (-cpos.v[1]) / cz.v[1];
+        if (!displayllset) {
+            displayEdges[0][0] = cpos.v[0] + t * cz.v[0];
+            displayEdges[0][1] = 0.0f;
+            displayEdges[0][2] = cpos.v[2] + t * cz.v[2];
+            displayllset = true;
+            return;
+        }       
+        if (!displaylrset) {
+            displayEdges[2][0] = cpos.v[0] + t * cz.v[0];
+            displayEdges[2][1] = 0.0f;
+            displayEdges[2][2] = cpos.v[2] + t * cz.v[2];
+            displaylrset = true;
+            return;
+        }
+        if (!displayulset) {
+            float f = (displayEdges[0][0] * (displayEdges[2][2] - displayEdges[0][2]) - displayEdges[0][2] * (displayEdges[2][0] - displayEdges[0][0]) - cpos.v[0] * (displayEdges[2][2] - displayEdges[0][2]) + cpos.v[2] * (displayEdges[2][0] - displayEdges[0][0])) / (cz.v[0] * (displayEdges[2][2] - displayEdges[0][2]) - cz.v[2] * (displayEdges[2][0] - displayEdges[0][0]));
+            displayEdges[1][0] = cpos.v[0] + f * cz.v[0];
+            displayEdges[1][1] = cpos.v[1] + f * cz.v[1];
+            displayEdges[1][2] = cpos.v[2] + f * cz.v[2];
+            displayulset = true;
         }
         initDisplay = true;
     }
@@ -586,6 +665,8 @@ namespace viscom {
         }
     }
 
+
+	//TODO fix wrong values
     void MasterNode::HandleSCGT(glm::vec3 pos, glm::quat q) {
         
         GetApplication()->GetEngine()->getDefaultUserPtr()->setPos(pos);

@@ -26,12 +26,14 @@ namespace viscom {
         void UpdateFrame(double currenttime,double) override;
 
         bool vrInitSucc = false;
-        bool bAcquireTrackingDataByWaitingForVREvents = true;
+        bool bAcquireTrackingDataByWaitingForVREvents = false;
 
     private:
         bool ProcessVREvent(const vr::VREvent_t & event);
         void ParseTrackingFrame();
         void InitDisplay(vr::HmdVector3_t);
+
+        void InitDisplayFloor(vr::HmdVector3_t cpos, vr::HmdVector3_t cz);
 
         void InitDisplayFromFile();
 
@@ -59,6 +61,7 @@ namespace viscom {
         bool displayllset = false;
         bool displayulset = false;
         bool displaylrset = false;
+		bool initfloor = true;
 
         /** first row lowerLeftCorner, second row upperLeftCorner, third row lowerRightCorner **/
         float displayEdges[3][3] = { {-1.7f, -0.2f, -3.0f },
