@@ -1,29 +1,28 @@
 /**
- * @file   MasterNode.cpp
+ * @file   CoordinatorNode.cpp
  * @author Sebastian Maisch <sebastian.maisch@uni-ulm.de>
  * @date   2016.11.25
  *
- * @brief  Implementation of the master application node.
+ * @brief  Implementation of the coordinator application node.
  */
 
-#include "MasterNode.h"
+#include "CoordinatorNode.h"
 #include <iostream>
 #include <fstream>
 #include <imgui.h>
 #include <openvr.h>
 #include <glm\gtc\matrix_transform.hpp>
-#include <sgct.h>
 
 namespace viscom {
 
-    MasterNode::MasterNode(ApplicationNodeInternal* appNode) :
+    CoordinatorNode::CoordinatorNode(ApplicationNodeInternal* appNode) :
         ApplicationNodeImplementation{ appNode }
     {
     }
 
-    MasterNode::~MasterNode() = default;
+    CoordinatorNode::~CoordinatorNode() = default;
 
-    void MasterNode::InitOpenGL() {
+    void CoordinatorNode::InitOpenGL() {
         vr::EVRInitError peError;
         // VRApplication_Scene (starts SteamVR no proper data) VRApplication_Overlay (starts SteamVR no SteamVRHome)  VRApplication_Background (doesn't start SteamVR uses SteamVRHome)
         m_pHMD = vr::VR_Init(&peError, vr::EVRApplicationType::VRApplication_Background);
@@ -35,12 +34,12 @@ namespace viscom {
         ApplicationNodeImplementation::InitOpenGL();
     }
 
-    void MasterNode::CleanUp() {
+    void CoordinatorNode::CleanUp() {
         vr::VR_Shutdown();
         ApplicationNodeBase::CleanUp();
     }
 
-    void MasterNode::UpdateFrame(double currenttime, double elapsedtime) {
+    void CoordinatorNode::UpdateFrame(double currenttime, double elapsedtime) {
         if (!initDisplay) {
             vr::VREvent_t event;
             vr::TrackedDevicePose_t trackedDevicePose;
@@ -94,7 +93,7 @@ namespace viscom {
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
     }
 
-    bool MasterNode::ProcessVREvent(const vr::VREvent_t & event) {
+    bool CoordinatorNode::ProcessVREvent(const vr::VREvent_t & event) {
         switch (event.eventType)
         {
         case vr::VREvent_TrackedDeviceActivated:
@@ -206,7 +205,7 @@ namespace viscom {
         return true;
     }
 
-    void MasterNode::ParseTrackingFrame() {
+    void CoordinatorNode::ParseTrackingFrame() {
         // Process SteamVR device states
         for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
         {
@@ -427,7 +426,7 @@ namespace viscom {
     }
 
     //Get the vector representing the position
-    vr::HmdVector3_t MasterNode::GetPosition(vr::HmdMatrix34_t matrix) {
+    vr::HmdVector3_t CoordinatorNode::GetPosition(vr::HmdMatrix34_t matrix) {
         vr::HmdVector3_t vector;
 
         vector.v[0] = matrix.m[0][3];
@@ -438,7 +437,7 @@ namespace viscom {
     }
 
     //Get the z-vector 
-    vr::HmdVector3_t MasterNode::GetZVector(vr::HmdMatrix34_t matrix) {
+    vr::HmdVector3_t CoordinatorNode::GetZVector(vr::HmdMatrix34_t matrix) {
         vr::HmdVector3_t vector;
 
         vector.v[0] = matrix.m[0][2];
@@ -449,7 +448,7 @@ namespace viscom {
     }
 
     // Get the quaternion representing the rotation
-    vr::HmdQuaternion_t MasterNode::GetRotation(vr::HmdMatrix34_t matrix) {
+    vr::HmdQuaternion_t CoordinatorNode::GetRotation(vr::HmdMatrix34_t matrix) {
         vr::HmdQuaternion_t q;
 
         q.w = sqrt(fmax(0, 1 + matrix.m[0][0] + matrix.m[1][1] + matrix.m[2][2])) / 2;
@@ -463,7 +462,7 @@ namespace viscom {
     }
 
     // Get the vector representing the Display position (x,y) by passing 3 display edges position and zvector
-    vr::HmdVector2_t MasterNode::GetDisplayPosVector(vr::HmdVector3_t position, vr::HmdVector3_t zvector, vr::HmdVector3_t display_lowerLeftCorner, vr::HmdVector3_t display_upperLeftCorner, vr::HmdVector3_t display_lowerRightCorner) {
+    vr::HmdVector2_t CoordinatorNode::GetDisplayPosVector(vr::HmdVector3_t position, vr::HmdVector3_t zvector, vr::HmdVector3_t display_lowerLeftCorner, vr::HmdVector3_t display_upperLeftCorner, vr::HmdVector3_t display_lowerRightCorner) {
         vr::HmdVector3_t d1 = display_lowerLeftCorner;
         vr::HmdVector3_t d2 = {display_upperLeftCorner.v[0] - display_lowerLeftCorner.v[0], display_upperLeftCorner.v[1] - display_lowerLeftCorner.v[1], display_upperLeftCorner.v[2] - display_lowerLeftCorner.v[2]};
         vr::HmdVector3_t d3 = {display_lowerRightCorner.v[0]-display_lowerLeftCorner.v[0], display_lowerRightCorner.v[1] - display_lowerLeftCorner.v[1], display_lowerRightCorner.v[2] - display_lowerLeftCorner.v[2]};
@@ -477,14 +476,14 @@ namespace viscom {
         return result;
     }
 
-    void MasterNode::Draw2D(FrameBuffer& fbo)
+    void CoordinatorNode::Draw2D(FrameBuffer& fbo)
     {
         
              
         fbo.DrawToFBO([this]() {
             ImGui::ShowTestWindow();
 
-            ImGui::SetNextWindowPos(ImVec2(700, 60), ImGuiSetCond_FirstUseEver);
+            ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiSetCond_FirstUseEver);
             ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
             ImGui::StyleColorsClassic();
             if (ImGui::Begin("MasterTestWindow", nullptr))
@@ -564,7 +563,7 @@ namespace viscom {
         ApplicationNodeImplementation::Draw2D(fbo);
     }
 
-    void MasterNode::InitDisplay(vr::HmdVector3_t dpos) {
+    void CoordinatorNode::InitDisplay(vr::HmdVector3_t dpos) {
         if (!displayllset) {     
             displayEdges[0][0] = dpos.v[0];
             displayEdges[0][1] = dpos.v[1];
@@ -587,7 +586,7 @@ namespace viscom {
         }
         initDisplay = true;
     }
-    void MasterNode::InitDisplayFloor(vr::HmdVector3_t cpos, vr::HmdVector3_t cz) {
+    void CoordinatorNode::InitDisplayFloor(vr::HmdVector3_t cpos, vr::HmdVector3_t cz) {
         float t = (-cpos.v[1]) / cz.v[1];
         if (!displayllset) {
             displayEdges[0][0] = cpos.v[0] + t * cz.v[0];
@@ -613,7 +612,7 @@ namespace viscom {
         initDisplay = true;
     }
 
-    void MasterNode::InitDisplayFromFile() {
+    void CoordinatorNode::InitDisplayFromFile() {
         std::ifstream myfile("displayEdges.txt");
         if (myfile.is_open()) {
             for (int i = 0; i < 3; i++) {
@@ -624,7 +623,7 @@ namespace viscom {
         }
     }
 
-    void MasterNode::WriteInitDisplayToFile() {
+    void CoordinatorNode::WriteInitDisplayToFile() {
         std::ofstream myfile;
         myfile.open("displayEdges.txt");
 
@@ -637,7 +636,7 @@ namespace viscom {
         myfile.close();
     }
 
-    void MasterNode::OutputDevices() {
+    void CoordinatorNode::OutputDevices() {
         
         for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++) {
             if (!m_pHMD->IsTrackedDeviceConnected(unDevice))
@@ -672,13 +671,14 @@ namespace viscom {
 
 
 	//TODO fix wrong values
-    void MasterNode::HandleSCGT(glm::vec3 pos, glm::quat q) {
+    void CoordinatorNode::HandleSCGT(glm::vec3 pos, glm::quat q) {
 		pos.x -= midDisplayPos.v[0];
 		pos.y -= midDisplayPos.v[1];
 		pos.z -= midDisplayPos.v[2];
 		sgctTrackerPos = { pos.x, pos.y, pos.z };
-        GetApplication()->GetEngine()->getDefaultUserPtr()->setPos(pos);
-        GetApplication()->GetEngine()->getDefaultUserPtr()->setOrientation(q);
+        // TODO: fix this. [8/10/2018 Sebastian Maisch]
+        // GetApplication()->GetEngine()->getDefaultUserPtr()->setPos(pos);
+        // GetApplication()->GetEngine()->getDefaultUserPtr()->setOrientation(q);
                
     }
 }

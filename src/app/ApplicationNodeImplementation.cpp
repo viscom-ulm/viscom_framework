@@ -10,7 +10,6 @@
 #include "Vertices.h"
 #include <imgui.h>
 #include "core/gfx/mesh/MeshRenderable.h"
-#include "core/imgui/imgui_impl_glfw_gl3.h"
 #include <iostream>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
