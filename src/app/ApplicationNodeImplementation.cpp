@@ -134,7 +134,7 @@ namespace viscom {
                 glEnable(GL_CULL_FACE);
             }
             
-            { //TODO
+            {
                 auto mousepointMVP = MVP * mousepointModelMatrix_;
                 glPointSize(30);
                 glUseProgram(mousepointProgram_->getProgramId());

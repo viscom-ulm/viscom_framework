@@ -31,23 +31,23 @@ namespace viscom {
     private:
         bool ProcessVREvent(const vr::VREvent_t & event);
         void ParseTrackingFrame();
-        void InitDisplay(vr::HmdVector3_t);
+        //void InitDisplay(vr::HmdVector3_t);
 
-        void InitDisplayFloor(vr::HmdVector3_t cpos, vr::HmdVector3_t cz);
+        //void InitDisplayFloor(vr::HmdVector3_t cpos, vr::HmdVector3_t cz);
 
-        void InitDisplayFromFile();
+        //void InitDisplayFromFile();
 
-        void WriteInitDisplayToFile();
+        //void WriteInitDisplayToFile();
 
         void OutputDevices();
 
         void HandleSCGT(glm::vec3 pos, glm::quat q);
 
-        vr::HmdVector3_t GetPosition(vr::HmdMatrix34_t matrix);
-        vr::HmdVector3_t GetZVector(vr::HmdMatrix34_t matrix);
-        vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix);
+        //vr::HmdVector3_t GetPosition(vr::HmdMatrix34_t matrix);
+        //vr::HmdVector3_t GetZVector(vr::HmdMatrix34_t matrix);
+        //vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix);
 
-        vr::HmdVector2_t GetDisplayPosVector(vr::HmdVector3_t position, vr::HmdVector3_t zvector, vr::HmdVector3_t display_lowerLeftCorner, vr::HmdVector3_t display_upperLeftCorner, vr::HmdVector3_t display_lowerRightCorner);
+        //vr::HmdVector2_t GetDisplayPosVector(vr::HmdVector3_t position, vr::HmdVector3_t zvector, vr::HmdVector3_t display_lowerLeftCorner, vr::HmdVector3_t display_upperLeftCorner, vr::HmdVector3_t display_lowerRightCorner);
 
         vr::IVRSystem *m_pHMD;
         vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
