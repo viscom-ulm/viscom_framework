@@ -30,7 +30,7 @@ namespace viscom {
 
     private:
         bool ProcessVREvent(const vr::VREvent_t & event);
-        void ParseTrackingFrame();
+        //void ParseTrackingFrame();
         //void InitDisplay(vr::HmdVector3_t);
 
         //void InitDisplayFloor(vr::HmdVector3_t cpos, vr::HmdVector3_t cz);

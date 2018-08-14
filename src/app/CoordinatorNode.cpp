@@ -39,7 +39,7 @@ namespace viscom {
     }
 
     void CoordinatorNode::UpdateFrame(double currenttime, double elapsedtime) {
-        if (!initDisplay) {
+        /*if (!initDisplay) {
             vr::VREvent_t event;
             vr::TrackedDevicePose_t trackedDevicePose;
             vr::TrackedDevicePose_t *devicePose = &trackedDevicePose;
@@ -66,26 +66,26 @@ namespace viscom {
                     }
                 }
             }
-        }
-        if (bAcquireTrackingDataByWaitingForVREvents) {
+        }*/
+        /*if (bAcquireTrackingDataByWaitingForVREvents) {
             vr::VREvent_t event;
             while (m_pHMD->PollNextEvent(&event, sizeof(event))) {
                 if (!ProcessVREvent(event)) {
                     //smth went wronng with the event
                 }
-                ParseTrackingFrame();
+                //ParseTrackingFrame();
             }
         }
         else {
-            ParseTrackingFrame();
+           // ParseTrackingFrame();
         }
-        
+
         float *displayPosTemp = GetDisplayPosVector(position.v, zvector.v, displayEdges[0],displayEdges[1],displayEdges[2]);
         displayPos.v[0] = displayPosTemp[0];
         displayPos.v[1] = displayPosTemp[1];
         posdx = displayPos.v[0] * 2 - 1;
         posdy = displayPos.v[1] * 2 - 1;
-
+        */
         //tracks the Controller pointing position
         mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy, 0.0f));
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
@@ -203,7 +203,7 @@ namespace viscom {
         return true;
     }
 
-    void CoordinatorNode::ParseTrackingFrame() {
+    /*void CoordinatorNode::ParseTrackingFrame() {
         // Process SteamVR device states
         for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
         {
@@ -355,7 +355,7 @@ namespace viscom {
                     else
                         sprintf_s(buf, sizeof(buf), "Invalid pose\n");
                     printf_s(buf);
-                    */
+                    *//*
                     break;
 
                 case vr::TrackedControllerRole_RightHand:
@@ -403,7 +403,7 @@ namespace viscom {
                     else
                         sprintf_s(buf, sizeof(buf), "Invalid pose\n");
                     printf_s(buf);
-                    */
+                    *//*
                     break;
 
                 case vr::TrackedDeviceClass_TrackingReference:
@@ -438,7 +438,7 @@ namespace viscom {
                 break;
             }
         }
-    }
+    }*/
 
     //Get the vector representing the position
     /*vr::HmdVector3_t CoordinatorNode::GetPosition(vr::HmdMatrix34_t matrix) {
@@ -541,15 +541,15 @@ namespace viscom {
                     }
                 }
                 if (ImGui::Button("Load Display")) {
-                    InitDisplayFromFile();
+                    // InitDisplayFromFile();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Save Display")) {
-                    WriteInitDisplayToFile();
+                    //WriteInitDisplayToFile();
                 }
                 ImGui::Checkbox("init with Floor", &initfloor);
                 ImGui::NewLine();
-                ImGui::Text("Connected devices:","");
+                ImGui::Text("Connected devices:", "");
                 for (auto &device : devices) {
                     ImGui::Text(device.c_str());
                 }
@@ -566,7 +566,7 @@ namespace viscom {
     }
 
     /*void CoordinatorNode::InitDisplay(vr::HmdVector3_t dpos) {
-        if (!displayllset) {     
+        if (!displayllset) {
             displayEdges[0][0] = dpos.v[0];
             displayEdges[0][1] = dpos.v[1];
             displayEdges[0][2] = dpos.v[1];
@@ -583,7 +583,7 @@ namespace viscom {
         if (!displaylrset) {
             displayEdges[2][0] = dpos.v[0];
             displayEdges[2][1] = dpos.v[1];
-            displayEdges[2][2] = dpos.v[1];   
+            displayEdges[2][2] = dpos.v[1];
             displaylrset = true;
         }
         initDisplay = true;
