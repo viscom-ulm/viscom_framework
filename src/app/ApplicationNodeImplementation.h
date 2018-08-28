@@ -49,6 +49,11 @@ namespace viscom {
 		/** Holds the location of the MVP matrix. */
 		GLint mousepointMVPLoc_ = -1;
 
+        /** Holds the shader program for drawing the demoCircles. */
+        std::shared_ptr<GPUProgram> demoCirclesProgram_;
+        /** Holds the location of the MVP matrix. */
+        GLint demoCirclesMVPLoc_ = -1;
+
         /** Holds the shader program for drawing the foreground teapot. */
         std::shared_ptr<GPUProgram> teapotProgram_;
         /** Holds the location of the model matrix. */
@@ -71,13 +76,14 @@ namespace viscom {
         std::unique_ptr<MeshRenderable> teapotRenderable_;
 
         glm::mat4 triangleModelMatrix_;
-		
         glm::mat4 teapotModelMatrix_;
         glm::vec3 camPos_;
-        glm::vec3 camRot_;		           
+        glm::vec3 camRot_;
         double posx, posy, posdx, posdy;
+        glm::mat4 demoCirclesModelMatrix_;
 
     protected:
+        /** Holds the mousePoint Model Matrix */
         glm::mat4 mousepointModelMatrix_;
     };
 }

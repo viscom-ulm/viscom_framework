@@ -36,6 +36,9 @@ namespace viscom {
         mousepointProgram_ = GetGPUProgramManager().GetResource("mousePoint", std::vector<std::string>{"mousePoint.vert", "mousePoint.frag"});
         mousepointMVPLoc_ = mousepointProgram_->getUniformLocation("MVP");
 
+        demoCirclesProgram_ = GetGPUProgramManager().GetResource("demoCircles", std::vector<std::string>{"demoCircles.vert", "demoCircles.frag"});
+        demoCirclesMVPLoc_ = demoCirclesProgram_->getUniformLocation("MVP");
+
         teapotProgram_ = GetGPUProgramManager().GetResource("foregroundMesh", std::vector<std::string>{ "foregroundMesh.vert", "foregroundMesh.frag" });
         teapotModelMLoc_ = teapotProgram_->getUniformLocation("modelMatrix");
         teapotNormalMLoc_ = teapotProgram_->getUniformLocation("normalMatrix");
@@ -71,6 +74,8 @@ namespace viscom {
 
         gridVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
+        gridVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
         glGenBuffers(1, &vboBackgroundGrid_);
         glBindBuffer(GL_ARRAY_BUFFER, vboBackgroundGrid_);
         glBufferData(GL_ARRAY_BUFFER, gridVertices.size() * sizeof(GridVertex), gridVertices.data(), GL_STATIC_DRAW);
@@ -99,7 +104,7 @@ namespace viscom {
 
         //Tracks the mouse
         //mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy*(-1.0f), 0.0f));
-        
+        //demoCirclesModelMatrix_ = glm::translate
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
     }
@@ -140,6 +145,13 @@ namespace viscom {
                 glUseProgram(mousepointProgram_->getProgramId());
                 glUniformMatrix4fv(mousepointMVPLoc_, 1, GL_FALSE, glm::value_ptr(mousepointMVP));
                 glDrawArrays(GL_POINTS, numBackgroundVertices_+3, 1);
+            }
+
+            {
+                auto demoCirclesMVP = MVP * demoCirclesModelMatrix_;
+                glUseProgram(demoCirclesProgram_->getProgramId());
+                glUniformMatrix4fv(demoCirclesMVPLoc_, 1, GL_FALSE, glm::value_ptr(demoCirclesMVP));
+                glDrawArrays(GL_POINTS, numBackgroundVertices_+4, 1);
             }
 
             {
@@ -221,7 +233,9 @@ namespace viscom {
         }
         return false;
     }
-    
+    /** Gets the display position of the mouse position callback and saves them into internal values.
+    '   @return bool if procedure was done succesfull.
+    */
     bool ApplicationNodeImplementation::MousePosCallback(double x, double y) {
 
         if (ApplicationNodeBase::MousePosCallback(x, y)) return true;
