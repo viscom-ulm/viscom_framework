@@ -18,7 +18,7 @@ namespace viscom {
     CoordinatorNode::CoordinatorNode(ApplicationNodeInternal* appNode) :
         ApplicationNodeImplementation{ appNode }
     {
-        appNode_ = appNode;
+
     }
 
     CoordinatorNode::~CoordinatorNode() = default;
@@ -34,9 +34,9 @@ namespace viscom {
 
     //TODO cleanup and fix
     void CoordinatorNode::UpdateFrame(double currenttime, double elapsedtime) {
-        appNode_->ParseTrackingFrame();
-        appNode_->PollAndParseEvents();
-        glm::vec2 displayPos = appNode_->GetDisplayPosition(false);
+        //appNode_->ParseTrackingFrame();
+        //appNode_->PollAndParseEvents();
+        glm::vec2 displayPos = GetDisplayPosition(TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND);
         //float *displayPosTemp = GetDisplayPosVector(position.v, zvector.v, displayEdges[0],displayEdges[1],displayEdges[2]);
         //displayPos.v[0] = displayPosTemp[0];
         //displayPos.v[1] = displayPosTemp[1];
@@ -46,6 +46,21 @@ namespace viscom {
         //tracks the Controller pointing position
         mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy, 0.0f));
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
+    }
+
+    bool CoordinatorNode::ControllerButtonPressedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation)
+    {
+        if(ApplicationNodeBase::ControllerButtonPressedCallback(trackedDevice, buttonid, posx, posy, position, zvector, rotation)) return true;
+
+        //TODO handle values
+        return false;
+    }
+
+    bool CoordinatorNode::ControllerButtonTouchedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation)
+    {
+        if (ApplicationNodeBase::ControllerButtonTouchedCallback(trackedDevice, buttonid, posx, posy, position, zvector, rotation)) return true;
+        //TODO handle values
+        return false;
     }
 
     /*void CoordinatorNode::ParseTrackingFrame() {
@@ -337,9 +352,9 @@ namespace viscom {
                 ImGui::NewLine();
                 glm::vec2 displayPos = GetDisplayPosition(true);
                 
-                glm::vec3 position = appNode_->GetController0Pos();
-                glm::vec3 zvector = appNode_->GetController0Zvec();
-                glm::quat rotation = appNode_->GetController0Rot();
+                glm::vec3 position = appNode_->GetControllerPosition(TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND);
+                glm::vec3 zvector = appNode_->GetControllerZVector(TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND);
+                glm::quat rotation = appNode_->GetControllerRotation(TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND);
                 ImGui::Text("Controller 0: Position x: %.2f, y: %.2f, z: %.2f", position[0], position[1], position[2]);
                 ImGui::Text("              zVector x: %.2f, y: %.2f, z: %.2f", zvector[0], zvector[1], zvector[2]);
                 ImGui::Text("              rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);

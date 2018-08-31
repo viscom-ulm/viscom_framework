@@ -28,6 +28,11 @@ namespace viscom {
         //bool vrInitSucc = false;
         bool bAcquireTrackingDataByWaitingForVREvents = false;
 
+        bool ControllerButtonPressedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation) override;
+        bool ControllerButtonTouchedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation) override;
+        bool ControllerButtonUnpressedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation) override;
+        bool ControllerButtonUntouchedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation) override;
+
     private:
         ApplicationNodeInternal* appNode_;
         //bool ProcessVREvent(const vr::VREvent_t & event);
