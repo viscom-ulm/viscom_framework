@@ -28,13 +28,12 @@ namespace viscom {
         //bool vrInitSucc = false;
         bool bAcquireTrackingDataByWaitingForVREvents = false;
 
-        bool ControllerButtonPressedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation) override;
-        bool ControllerButtonTouchedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation) override;
-        bool ControllerButtonUnpressedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation) override;
-        bool ControllerButtonUntouchedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, float posx, float posy, glm::vec3 position, glm::vec3 zvector, glm::quat rotation) override;
+        //bool ControllerButtonPressedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, glm::vec2 axisvalues) override;
+        //bool ControllerButtonTouchedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, glm::vec2 axisvalues) override;
+        //bool ControllerButtonUnpressedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, glm::vec2 axisvalues) override;
+        //bool ControllerButtonUntouchedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, glm::vec2 axisvalues) override;
 
     private:
-        ApplicationNodeInternal* appNode_;
         //bool ProcessVREvent(const vr::VREvent_t & event);
         //void ParseTrackingFrame();
         //void InitDisplay(vr::HmdVector3_t);
@@ -70,6 +69,6 @@ namespace viscom {
         //{ -1.7f, 1.5f, -3.0f },
         //{ 1.8f, -0.28f, -3.0f } };
         float posdx, posdy;
-
+        bool useLeftHandController = true;
     };
 }
