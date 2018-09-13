@@ -34,7 +34,17 @@ namespace viscom {
 
     //TODO cleanup and fix
     void CoordinatorNode::UpdateFrame(double currenttime, double elapsedtime) {
-        glm::vec2 displayPos = GetDisplayPosition(TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND);
+        connectedDevices = GetConnectedDevices();
+        size_t controllerindex=0;
+        for (DeviceInfo d : connectedDevices) {
+            if (useLeftHandController&& d.deviceRole == TrackedDeviceRole::CONTROLLER_LEFT_HAND) {
+                controllerindex = d.deviceId;
+            }
+            if (!useLeftHandController && d.deviceRole == TrackedDeviceRole::CONTROLLER_RIGHT_HAND) {
+                controllerindex = d.deviceId;
+            }
+        }
+        displayPos = GetDisplayPosition(controllerindex);
         posdx = displayPos[0] * 2 - 1;
         posdy = displayPos[1] * 2 - 1;
         
@@ -42,24 +52,9 @@ namespace viscom {
         mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy, 0.0f));
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
     }
-    /*
-    bool CoordinatorNode::ControllerButtonPressedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, glm::vec2 axisvalues)
-    {
-        if(ApplicationNodeBase::ControllerButtonPressedCallback(trackedDevice, buttonid, axisvalues)) return true;
+    //TODO Demo with Callbacks
 
-        //TODO handle values
-        return false;
-    }*/
-
-    /*bool CoordinatorNode::ControllerButtonTouchedCallback(TrackedDeviceIdentifier trackedDevice, ControllerButtonIdentifier buttonid, glm::vec2 axisvalues)
-    {
-        if (ApplicationNodeBase::ControllerButtonTouchedCallback(trackedDevice, buttonid, axisvalues)) return true;
-        //TODO handle values
-        return false;
-    }
-    */
-
-    //TODO use values from Master Node internal
+    //TODO use all values from Master Node internal
     void CoordinatorNode::Draw2D(FrameBuffer& fbo)
     {
         fbo.DrawToFBO([this]() {
@@ -75,40 +70,38 @@ namespace viscom {
                 }
                 ImGui::Checkbox("Use left controller as main controller", &useLeftHandController);
                 ImGui::NewLine();
-                glm::vec2 displayPos = GetDisplayPosition(useLeftHandController?TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND:TrackedDeviceIdentifier::CONTROLLER_RIGHT_HAND);
-                
-                glm::vec3 position = GetControllerPosition(TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND);
-                glm::vec3 zvector = GetControllerZVector(TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND);
-                glm::quat rotation = GetControllerRotation(TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND);
-                ImGui::Text("Controller 0: position x: %.2f, y: %.2f, z: %.2f", position[0], position[1], position[2]);
-                ImGui::Text("              zVector x: %.2f, y: %.2f, z: %.2f", zvector[0], zvector[1], zvector[2]);
-                ImGui::Text("              rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
-                //ImGui::Text("              buttons pressed: ");
-                
+                int i = 0;
+                size_t trackerid=0;
+                glm::vec3 position = glm::vec3();
+                glm::vec3 zvector = glm::vec3();
+                glm::quat rotation = glm::quat();
+                for (DeviceInfo d : connectedDevices) {
+                    if (d.deviceClass == TrackedDeviceClass::CONTROLLER) {
+                        glm::vec3 position = GetControllerPosition(d.deviceId);
+                        glm::vec3 zvector = GetControllerZVector(d.deviceId);
+                        glm::quat rotation = GetControllerRotation(d.deviceId);
+                        ImGui::Text("Controller %i: position x: %.2f, y: %.2f, z: %.2f", i, position[0], position[1], position[2]);
+                        ImGui::Text("              zVector x: %.2f, y: %.2f, z: %.2f", zvector[0], zvector[1], zvector[2]);
+                        ImGui::Text("              rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
+                        i++;
+                    }
+                    if (d.deviceClass == TrackedDeviceClass::GENERIC_TRACKER) trackerid = d.deviceId;
+                }
 
-                position = GetControllerPosition(TrackedDeviceIdentifier::CONTROLLER_RIGHT_HAND);
-                zvector = GetControllerZVector(TrackedDeviceIdentifier::CONTROLLER_RIGHT_HAND);
-                rotation = GetControllerRotation(TrackedDeviceIdentifier::CONTROLLER_RIGHT_HAND);
-                ImGui::NewLine();
-                ImGui::Text("Controller 1: position x: %.2f, y: %.2f, z: %.2f", position[0], position[1], position[2]);
-                ImGui::Text("              zVector x: %.2f, y: %.2f, z: %.2f", zvector[0], zvector[1], zvector[2]);
-                ImGui::Text("              rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
-                //ImGui::Text("              buttons pressed: ");
-                
-                
                 ImGui::NewLine();
                 ImGui::Text("Display Pointer Position x: %.2f y %.2f", displayPos[0], displayPos[1]);
                 //ImGui::Text("midDisplaypos x: %.2f y: %.2f z: %.2f", midDisplayPos.v[0], midDisplayPos.v[1], midDisplayPos.v[2]);
-                position = GetControllerPosition(TrackedDeviceIdentifier::GENERIC_TRACKER);
+                position = GetControllerPosition(trackerid);
+                rotation = GetControllerRotation(trackerid);
                 ImGui::Text("Tracker    position x: %.2f, y: %.2f, z: %.2f", position[0], position[1], position[2]);
                 ImGui::Text("           rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
                 //ImGui::Text("SGCT Tracker Position x: %.2f, y: %.2f, z: %.2f", sgctTrackerPos.v[0], sgctTrackerPos.v[1], sgctTrackerPos.v[2]);
                 ImGui::NewLine();
                 if (ImGui::Button("Calibrate by Touching")) {
-                    CalibrateVR(CalibrateMethod::CALIBRATE_BY_TOUCHING, useLeftHandController ? TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND : TrackedDeviceIdentifier::CONTROLLER_RIGHT_HAND);
+                    CalibrateVR(CalibrateMethod::CALIBRATE_BY_TOUCHING);
                 }
                 if (ImGui::Button("Calibrate by Pointing")) {
-                    CalibrateVR(CalibrateMethod::CALIBRATE_BY_POINTING, useLeftHandController ? TrackedDeviceIdentifier::CONTROLLER_LEFT_HAND : TrackedDeviceIdentifier::CONTROLLER_RIGHT_HAND);
+                    CalibrateVR(CalibrateMethod::CALIBRATE_BY_POINTING);
                 }                   
                 ImGui::NewLine();
                 ImGui::Text("Display Edges");

@@ -38,6 +38,7 @@ namespace viscom {
 
         demoCirclesProgram_ = GetGPUProgramManager().GetResource("demoCircles", std::vector<std::string>{"demoCircles.vert", "demoCircles.frag"});
         demoCirclesMVPLoc_ = demoCirclesProgram_->getUniformLocation("MVP");
+        demoCirclesCenterPos_ = demoCirclesProgram_->getUniformLocation("center");
 
         teapotProgram_ = GetGPUProgramManager().GetResource("foregroundMesh", std::vector<std::string>{ "foregroundMesh.vert", "foregroundMesh.frag" });
         teapotModelMLoc_ = teapotProgram_->getUniformLocation("modelMatrix");
@@ -149,7 +150,9 @@ namespace viscom {
 
             {
                 auto demoCirclesMVP = MVP * demoCirclesModelMatrix_;
+                auto demoCirclesCenterPos = glm::vec2(0.0f,0.0f);
                 glUseProgram(demoCirclesProgram_->getProgramId());
+                glUniform2fv(demoCirclesCenterPos_, GL_FALSE, glm::value_ptr(demoCirclesCenterPos));
                 glUniformMatrix4fv(demoCirclesMVPLoc_, 1, GL_FALSE, glm::value_ptr(demoCirclesMVP));
                 glDrawArrays(GL_POINTS, numBackgroundVertices_+4, 1);
             }
