@@ -33,6 +33,8 @@ namespace viscom {
         virtual bool KeyboardCallback(int key, int scancode, int action, int mods) override;
 		virtual bool MousePosCallback(double x, double y) override;
 
+        bool ControllerButtonPressedCallback(size_t trackedDeviceId, size_t buttonid, glm::vec2 axisvalues) override;
+
     private:
         /** Holds the shader program for drawing the background. */
         std::shared_ptr<GPUProgram> backgroundProgram_;
@@ -72,6 +74,14 @@ namespace viscom {
         /** Holds the vertex array object for the background grid. */
         GLuint vaoBackgroundGrid_ = 0;
 
+        /** Holds the number of vertices of the circles demo. */
+        unsigned int numCirclesVertices_ = 0;
+        /** Holds the vertex buffer for the background grid. */
+        GLuint vboCircles_ = 0;
+        /** Holds the vertex array object for the background grid. */
+        GLuint vaoCircles_ = 0;
+        GLint demoCirclesWindowSize_ = -1;
+
         /** Holds the teapot mesh. */
         std::shared_ptr<Mesh> teapotMesh_;
         /** Holds the teapot mesh renderable. */
@@ -83,9 +93,18 @@ namespace viscom {
         glm::vec3 camRot_;
         double posx, posy, posdx, posdy;
         glm::mat4 demoCirclesModelMatrix_;
+        
+
+        
+        float circleMoveStartTime = 0.0f;
 
     protected:
         /** Holds the mousePoint Model Matrix */
         glm::mat4 mousepointModelMatrix_;
+        bool demoCirclesMoved = false;
+        float circler_ = 0.05f;
+        float circlex_ = 0.0f;
+        float circley_ = 0.0f;
+        int demoPoints = 0;
     };
 }

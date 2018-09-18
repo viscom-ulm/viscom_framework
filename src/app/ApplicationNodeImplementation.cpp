@@ -15,6 +15,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/random.hpp>
 
 namespace viscom {
 
@@ -38,7 +39,6 @@ namespace viscom {
 
         demoCirclesProgram_ = GetGPUProgramManager().GetResource("demoCircles", std::vector<std::string>{"demoCircles.vert", "demoCircles.frag"});
         demoCirclesMVPLoc_ = demoCirclesProgram_->getUniformLocation("MVP");
-        demoCirclesCenterPos_ = demoCirclesProgram_->getUniformLocation("center");
 
         teapotProgram_ = GetGPUProgramManager().GetResource("foregroundMesh", std::vector<std::string>{ "foregroundMesh.vert", "foregroundMesh.frag" });
         teapotModelMLoc_ = teapotProgram_->getUniformLocation("modelMatrix");
@@ -46,6 +46,7 @@ namespace viscom {
         teapotVPLoc_ = teapotProgram_->getUniformLocation("viewProjectionMatrix");
 
         std::vector<GridVertex> gridVertices;
+        std::vector<GridVertex> circleVertices;
 
         auto delta = 0.125f;
         for (auto x = -1.0f; x < 1.0f; x += delta) {
@@ -74,8 +75,14 @@ namespace viscom {
         gridVertices.emplace_back(glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
         gridVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-        gridVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        float twicePi = 2.0f * 3.14159f;
+        float radius = 0.05f;
+        for (int i = 0; i < 100; i++) {
+            circleVertices.emplace_back(glm::vec3(radius*cos(i * twicePi / 100), radius*sin(i * twicePi / 100), 0.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+        }
+        //circleVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+        
+        numCirclesVertices_ = static_cast<unsigned int>(circleVertices.size());
 
         glGenBuffers(1, &vboBackgroundGrid_);
         glBindBuffer(GL_ARRAY_BUFFER, vboBackgroundGrid_);
@@ -83,6 +90,20 @@ namespace viscom {
 
         glGenVertexArrays(1, &vaoBackgroundGrid_);
         glBindVertexArray(vaoBackgroundGrid_);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GridVertex), reinterpret_cast<GLvoid*>(offsetof(GridVertex, position_)));
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(GridVertex), reinterpret_cast<GLvoid*>(offsetof(GridVertex, color_)));
+        glBindVertexArray(0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        glGenBuffers(1, &vboCircles_);
+        glBindBuffer(GL_ARRAY_BUFFER, vboCircles_);
+        glBufferData(GL_ARRAY_BUFFER, circleVertices.size() * sizeof(GridVertex), circleVertices.data(), GL_STATIC_DRAW);
+
+        glGenVertexArrays(1, &vaoCircles_);
+        glBindVertexArray(vaoCircles_);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GridVertex), reinterpret_cast<GLvoid*>(offsetof(GridVertex, position_)));
         glEnableVertexAttribArray(1);
@@ -105,7 +126,19 @@ namespace viscom {
 
         //Tracks the mouse
         //mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy*(-1.0f), 0.0f));
-        //demoCirclesModelMatrix_ = glm::translate
+        //demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy*(-1.0f), 0.0f)),glm::vec3(static_cast<float>(currentTime)*2.0f));
+        if (!demoCirclesMoved) {
+            circlex_ = glm::linearRand(-1.0f, 1.0f)*(GetConfig().nearPlaneSize_.x);
+            circley_ = glm::linearRand(-1.0f, 1.0f)*(-1.0f);
+            demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f));
+            demoCirclesMoved = true;
+            circleMoveStartTime = static_cast<float>(currentTime);
+        }
+        if (demoCirclesMoved) {
+            demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f)),glm::vec3((static_cast<float>(currentTime)-circleMoveStartTime)*2.0f));
+            circler_ = (static_cast<float>(currentTime) - circleMoveStartTime)* 0.05f;
+            if (circler_ > 0.2f) demoCirclesMoved = false;
+        }
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
     }
@@ -148,14 +181,21 @@ namespace viscom {
                 glDrawArrays(GL_POINTS, numBackgroundVertices_+3, 1);
             }
 
+            glBindVertexArray(vaoCircles_);
+            glBindBuffer(GL_ARRAY_BUFFER, vboCircles_);
+            
+
             {
                 auto demoCirclesMVP = MVP * demoCirclesModelMatrix_;
-                auto demoCirclesCenterPos = glm::vec2(0.0f,0.0f);
+                glm::vec4 windowSize = glm::vec4(GetConfig().nearPlaneSize_.x,GetConfig().nearPlaneSize_.y, 0.0f, 1.0f);
                 glUseProgram(demoCirclesProgram_->getProgramId());
-                glUniform2fv(demoCirclesCenterPos_, GL_FALSE, glm::value_ptr(demoCirclesCenterPos));
+                glPointSize(30);
                 glUniformMatrix4fv(demoCirclesMVPLoc_, 1, GL_FALSE, glm::value_ptr(demoCirclesMVP));
-                glDrawArrays(GL_POINTS, numBackgroundVertices_+4, 1);
+                glDrawArrays(GL_LINE_LOOP, 0, numCirclesVertices_);
             }
+
+            glBindVertexArray(vaoBackgroundGrid_);
+            glBindBuffer(GL_ARRAY_BUFFER, vboBackgroundGrid_);
 
             {
                 glUseProgram(teapotProgram_->getProgramId());
@@ -165,6 +205,9 @@ namespace viscom {
                 glUniformMatrix4fv(teapotVPLoc_, 1, GL_FALSE, glm::value_ptr(MVP));
                 teapotRenderable_->Draw(teapotModelMatrix_);
             }
+
+
+
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
@@ -251,5 +294,17 @@ namespace viscom {
             return true;
         }
         return false;
+    }
+
+    bool ApplicationNodeImplementation::ControllerButtonPressedCallback(size_t trackedDeviceId, size_t buttonid, glm::vec2 axisvalues) {
+        if (ApplicationNodeBase::ControllerButtonPressedCallback(trackedDeviceId, buttonid, axisvalues)) return true;
+        glm::vec2 displayPos = GetDisplayPosition(trackedDeviceId);
+        if (buttonid == 33 && displayPos.x >= (circlex_ - circler_) && displayPos.x < (circlex_ + circler_) && displayPos.y >= (circley_ - circler_) && displayPos.y <= (circley_ + circler_)) {
+            demoPoints += 10;
+            demoCirclesMoved = false;
+            return true;
+        }
+        return false;
+
     }
 }
