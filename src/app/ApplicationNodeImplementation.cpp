@@ -130,14 +130,17 @@ namespace viscom {
         if (!demoCirclesMoved) {
             circlex_ = glm::linearRand(-1.0f, 1.0f)*(GetConfig().nearPlaneSize_.x);
             circley_ = glm::linearRand(-1.0f, 1.0f)*(-1.0f);
-            demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f));
+			demoSyncInfoLocal_.circleData_.x = circlex_;
+			demoSyncInfoLocal_.circleData_.y = circley_;
+            demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f));
             demoCirclesMoved = true;
             circleMoveStartTime = static_cast<float>(currentTime);
         }
-        if (demoCirclesMoved) {
-            demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f)),glm::vec3((static_cast<float>(currentTime)-circleMoveStartTime)*2.0f));
-            circler_ = (static_cast<float>(currentTime) - circleMoveStartTime)* 0.05f;
-            if (circler_ > 0.2f) demoCirclesMoved = false;
+        if (demoCirclesMoved) {            
+            circler_ = (static_cast<float>(currentTime) - circleMoveStartTime)* 2.0f;
+			demoSyncInfoLocal_.circleData_.z = circler_;
+            demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f)), glm::vec3(demoSyncInfoLocal_.circleData_.z));   //glm::vec3((static_cast<float>(currentTime) - circleMoveStartTime)*2.0f));
+            if (circler_ > 8.0f) demoCirclesMoved = false;
         }
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
@@ -223,6 +226,26 @@ namespace viscom {
         vboBackgroundGrid_ = 0;
     }
 
+	void ApplicationNodeImplementation::PreSync()
+	{
+		demoSyncInfoSynced_.setVal(demoSyncInfoLocal_);
+	}
+
+	void ApplicationNodeImplementation::UpdateSyncedInfo()
+	{
+        demoSyncInfoLocal_ = demoSyncInfoSynced_.getVal();
+	}
+
+	void ApplicationNodeImplementation::EncodeData()
+	{
+		sgct::SharedData::instance()->writeObj(&demoSyncInfoSynced_);
+	}
+
+	void ApplicationNodeImplementation::DecodeData()
+	{
+		sgct::SharedData::instance()->readObj(&demoSyncInfoSynced_);
+	}
+
     bool ApplicationNodeImplementation::KeyboardCallback(int key, int scancode, int action, int mods)
     {
         if (ApplicationNodeBase::KeyboardCallback(key, scancode, action, mods)) return true;
@@ -298,9 +321,13 @@ namespace viscom {
 
     bool ApplicationNodeImplementation::ControllerButtonPressedCallback(size_t trackedDeviceId, size_t buttonid, glm::vec2 axisvalues) {
         if (ApplicationNodeBase::ControllerButtonPressedCallback(trackedDeviceId, buttonid, axisvalues)) return true;
-        glm::vec2 displayPos = GetDisplayPosition(trackedDeviceId);
+        glm::vec2 displayPos = GetDisplayPointerPosition(trackedDeviceId);
         if (buttonid == 33 && displayPos.x >= (circlex_ - circler_) && displayPos.x < (circlex_ + circler_) && displayPos.y >= (circley_ - circler_) && displayPos.y <= (circley_ + circler_)) {
-            demoPoints += 10;
+            if (circler_ < 0.1) demoPoints += 50;
+            if (circler_ < 0.2) demoPoints += 25;
+            if (circler_ < 0.3) demoPoints += 15;
+            if (circler_ < 0.4) demoPoints += 10;
+
             demoCirclesMoved = false;
             return true;
         }

@@ -14,6 +14,10 @@ namespace viscom {
 
     class MeshRenderable;
 
+	struct demoSyncedInfo {
+		glm::vec3 circleData_;
+	};
+
     class ApplicationNodeImplementation : public ApplicationNodeBase
     {
     public:
@@ -29,6 +33,11 @@ namespace viscom {
         virtual void ClearBuffer(FrameBuffer& fbo) override;
         virtual void DrawFrame(FrameBuffer& fbo) override;
         virtual void CleanUp() override;
+		virtual void PreSync() override;
+        virtual void UpdateSyncedInfo() override;
+
+		void EncodeData() override;
+		void DecodeData() override;
 
         virtual bool KeyboardCallback(int key, int scancode, int action, int mods) override;
 		virtual bool MousePosCallback(double x, double y) override;
@@ -99,6 +108,11 @@ namespace viscom {
         float circleMoveStartTime = 0.0f;
 
     protected:
+		/** Holds the synchronized object (local). */
+		demoSyncedInfo demoSyncInfoLocal_;
+		/** Holds the synchronized object (synced). */
+		sgct::SharedObject<demoSyncedInfo> demoSyncInfoSynced_;
+
         /** Holds the mousePoint Model Matrix */
         glm::mat4 mousepointModelMatrix_;
         bool demoCirclesMoved = false;

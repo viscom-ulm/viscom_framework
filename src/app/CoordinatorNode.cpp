@@ -45,7 +45,7 @@ namespace viscom {
                 controllerindex = d.deviceId;
             }
         }
-        displayPos = GetDisplayPosition(controllerindex);
+        displayPos = GetDisplayPointerPosition(controllerindex);
         posdx = displayPos[0] * 2 - 1;
         posdy = displayPos[1] * 2 - 1;
         
