@@ -28,6 +28,7 @@ namespace viscom {
 
     void ApplicationNodeImplementation::InitOpenGL()
     {
+        LOG(INFO) << "InitOpenGL called in AppNImpl";
         backgroundProgram_ = GetGPUProgramManager().GetResource("backgroundGrid", std::vector<std::string>{ "backgroundGrid.vert", "backgroundGrid.frag" });
         backgroundMVPLoc_ = backgroundProgram_->getUniformLocation("MVP");
 
@@ -125,21 +126,58 @@ namespace viscom {
         GetCamera()->SetOrientation(yawQuat * pitchQuat * rollQuat);
 
         //Tracks the mouse
-        //mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy*(-1.0f), 0.0f));
+        //connectedDevices_= GetConnectedDevices();
+        //size_t controllerindex = 0;
+        //for (DeviceInfo d : connectedDevices_) {
+        //    if (d.deviceClass == TrackedDeviceClass::CONTROLLER && d.deviceRole == TrackedDeviceRole::CONTROLLER_LEFT_HAND) controllerindex = d.deviceId;
+        //}
+        //displayPos = GetDisplayPointerPosition(controllerindex);
+        //displayPos.x = displayPos.x * 2 - 1;
+        //displayPos.y = displayPos.y * 2 - 1;
+#ifdef VISCOM_USE_SGCT
+        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)demoSyncInfoLocal_.displayPos0_.x*(GetConfig().nearPlaneSize_.x), (float)demoSyncInfoLocal_.displayPos0_.y, 0.0f));
+#endif
+#ifndef VISCOM_USE_SGCT
+        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)displayPos.x*(GetConfig().nearPlaneSize_.x), (float)displayPos.y, 0.0f));
+#endif // !VISCOM_USE_SGCT
+
         //demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy*(-1.0f), 0.0f)),glm::vec3(static_cast<float>(currentTime)*2.0f));
         if (!demoCirclesMoved) {
             circlex_ = glm::linearRand(-1.0f, 1.0f)*(GetConfig().nearPlaneSize_.x);
             circley_ = glm::linearRand(-1.0f, 1.0f)*(-1.0f);
-			demoSyncInfoLocal_.circleData_.x = circlex_;
-			demoSyncInfoLocal_.circleData_.y = circley_;
+
+#ifdef VISCOM_USE_SGCT
             demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f));
+#endif
+#ifndef VISCOM_USE_SGCT
+            demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f));
+#endif // !VISCOM_USE_SGCT
+
             demoCirclesMoved = true;
             circleMoveStartTime = static_cast<float>(currentTime);
+#ifdef VISCOM_USE_SGCT
+            demoSyncInfoLocal_.circleData_.x = circlex_;
+            demoSyncInfoLocal_.circleData_.y = circley_;
+#endif // VISCOM_USE_SGCT
+
+            
         }
-        if (demoCirclesMoved) {            
-            circler_ = (static_cast<float>(currentTime) - circleMoveStartTime)* 2.0f;
-			demoSyncInfoLocal_.circleData_.z = circler_;
+        if (demoCirclesMoved) {
+#ifdef VISCOM_USE_SGCT
             demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f)), glm::vec3(demoSyncInfoLocal_.circleData_.z));   //glm::vec3((static_cast<float>(currentTime) - circleMoveStartTime)*2.0f));
+#endif // VISCOM_USE_SGCT
+
+#ifndef VISCOM_USE_SGCT
+            demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f)), glm::vec3(circler_));
+#endif // !VISCOM_USE_SGCT
+
+
+            circler_ = (static_cast<float>(currentTime) - circleMoveStartTime)* 2.0f;
+
+#ifdef VISCOM_USE_SGCT
+            demoSyncInfoLocal_.circleData_.z = circler_;
+#endif // !VISCOM_USE_SGCT
+
             if (circler_ > 8.0f) demoCirclesMoved = false;
         }
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -209,9 +247,6 @@ namespace viscom {
                 teapotRenderable_->Draw(teapotModelMatrix_);
             }
 
-
-
-
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
             glUseProgram(0);
@@ -225,26 +260,27 @@ namespace viscom {
         if (vboBackgroundGrid_ != 0) glDeleteBuffers(1, &vboBackgroundGrid_);
         vboBackgroundGrid_ = 0;
     }
+#ifdef VISCOM_USE_SGCT
+    void ApplicationNodeImplementation::PreSync()
+    {
+        demoSyncInfoSynced_.setVal(demoSyncInfoLocal_);
+    }
 
-	void ApplicationNodeImplementation::PreSync()
-	{
-		demoSyncInfoSynced_.setVal(demoSyncInfoLocal_);
-	}
-
-	void ApplicationNodeImplementation::UpdateSyncedInfo()
-	{
+    void ApplicationNodeImplementation::UpdateSyncedInfo()
+    {
         demoSyncInfoLocal_ = demoSyncInfoSynced_.getVal();
-	}
+    }
 
-	void ApplicationNodeImplementation::EncodeData()
-	{
-		sgct::SharedData::instance()->writeObj(&demoSyncInfoSynced_);
-	}
+     void ApplicationNodeImplementation::EncodeData()
+     {
+        sgct::SharedData::instance()->writeObj(&demoSyncInfoSynced_);
+     }
 
-	void ApplicationNodeImplementation::DecodeData()
-	{
-		sgct::SharedData::instance()->readObj(&demoSyncInfoSynced_);
-	}
+     void ApplicationNodeImplementation::DecodeData()
+     {
+        sgct::SharedData::instance()->readObj(&demoSyncInfoSynced_);
+     }
+#endif
 
     bool ApplicationNodeImplementation::KeyboardCallback(int key, int scancode, int action, int mods)
     {
@@ -319,19 +355,4 @@ namespace viscom {
         return false;
     }
 
-    bool ApplicationNodeImplementation::ControllerButtonPressedCallback(size_t trackedDeviceId, size_t buttonid, glm::vec2 axisvalues) {
-        if (ApplicationNodeBase::ControllerButtonPressedCallback(trackedDeviceId, buttonid, axisvalues)) return true;
-        glm::vec2 displayPos = GetDisplayPointerPosition(trackedDeviceId);
-        if (buttonid == 33 && displayPos.x >= (circlex_ - circler_) && displayPos.x < (circlex_ + circler_) && displayPos.y >= (circley_ - circler_) && displayPos.y <= (circley_ + circler_)) {
-            if (circler_ < 0.1) demoPoints += 50;
-            if (circler_ < 0.2) demoPoints += 25;
-            if (circler_ < 0.3) demoPoints += 15;
-            if (circler_ < 0.4) demoPoints += 10;
-
-            demoCirclesMoved = false;
-            return true;
-        }
-        return false;
-
-    }
 }

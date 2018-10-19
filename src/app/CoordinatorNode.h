@@ -9,7 +9,6 @@
 #pragma once
 
 #include "app/ApplicationNodeImplementation.h"
-#include <openvr.h>
 
 namespace viscom {
 
@@ -24,8 +23,14 @@ namespace viscom {
         void CleanUp() override;
 
         void UpdateFrame(double currenttime, double) override;
+#ifdef VISCOM_USE_SGCT
+        void PreSync() override;
+        void UpdateSyncedInfo() override;
+#endif // VISCOM_USE_SGCT
 
         bool bAcquireTrackingDataByWaitingForVREvents = false;
+
+        bool ControllerButtonPressedCallback(size_t trackedDeviceId, size_t buttonid, glm::vec2 axisvalues) override;
 
     private:
 
@@ -34,6 +39,6 @@ namespace viscom {
         bool useLeftHandController = true;
         bool initVr_ = false;
         std::vector<DeviceInfo> connectedDevices_ = std::vector<DeviceInfo>();
-        glm::vec2 displayPos = glm::vec2();
+        glm::vec2 displayPos = glm::vec2(0.0f, 0.0f);
     };
 }

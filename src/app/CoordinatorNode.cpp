@@ -10,7 +10,6 @@
 #include <iostream>
 #include <fstream>
 #include <imgui.h>
-//#include <openvr.h>
 #include <glm\gtc\matrix_transform.hpp>
 
 namespace viscom {
@@ -26,6 +25,7 @@ namespace viscom {
     void CoordinatorNode::InitOpenGL() 
     {
         initVr_ = InitialiseVR();
+        InitialiseDisplayVR();
         ApplicationNodeImplementation::InitOpenGL();
     }
 
@@ -49,11 +49,15 @@ namespace viscom {
         posdx = displayPos[0] * 2 - 1;
         posdy = displayPos[1] * 2 - 1;
         
+#ifdef VISCOM_USE_SGCT
+        demoSyncInfoLocal_.displayPos0_.x = posdx;
+        demoSyncInfoLocal_.displayPos0_.y = posdy;
+#endif
         //tracks the Controller pointing position
-        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy, 0.0f));
+        //mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy, 0.0f));
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
     }
-    //TODO Demo with Callbacks
+    //TODO Check if encode decode needed
 
     //TODO use all values from Master Node internal
     void CoordinatorNode::Draw2D(FrameBuffer& fbo)
@@ -155,5 +159,39 @@ namespace viscom {
         ApplicationNodeImplementation::Draw2D(fbo);
     }
 
+    bool CoordinatorNode::ControllerButtonPressedCallback(size_t trackedDeviceId, size_t buttonid, glm::vec2 axisvalues) {
+        if (ApplicationNodeBase::ControllerButtonPressedCallback(trackedDeviceId, buttonid, axisvalues)) return true;
+        glm::vec2 displayPos = GetDisplayPointerPosition(trackedDeviceId);
+#ifdef VISCOM_USE_SGCT
+        if (buttonid == 33 &&
+            demoSyncInfoLocal_.displayPos0_.x >= (demoSyncInfoLocal_.circleData_.x - (demoSyncInfoLocal_.circleData_.z / 12)) &&
+            demoSyncInfoLocal_.displayPos0_.x <= (demoSyncInfoLocal_.circleData_.x + (demoSyncInfoLocal_.circleData_.z / 12)) &&
+            demoSyncInfoLocal_.displayPos0_.y >= (demoSyncInfoLocal_.circleData_.y - demoSyncInfoLocal_.circleData_.z / 10) &&
+            demoSyncInfoLocal_.displayPos0_.y <= (demoSyncInfoLocal_.circleData_.y + demoSyncInfoLocal_.circleData_.z / 10)) {
+            if (demoSyncInfoLocal_.circleData_.z < 2) demoPoints += 50;
+            if (demoSyncInfoLocal_.circleData_.z < 2) demoPoints += 25;
+            if (demoSyncInfoLocal_.circleData_.z < 2) demoPoints += 15;
+            if (demoSyncInfoLocal_.circleData_.z < 2) demoPoints += 10;
+            demoCirclesMoved = false;
+            return true;
+        }
+#endif // VISCOM_USE_SGCT
+#ifndef VISCOM_USE_SGCT
+        if (buttonid == 33 &&
+            displayPos.x >= (circlex_ - circler_ / 12) &&
+            displayPos.x <= (circlex_ + circler_ / 12) &&
+            displayPos.y >= (circley_ - circler_ / 10) &&
+            displayPos.y <= (circley_ + circler_ / 10)) {
+            if (circler_ < 2) demoPoints += 50;
+            if (circler_ < 4) demoPoints += 25;
+            if (circler_ < 6) demoPoints += 15;
+            if (circler_ < 8) demoPoints += 10;
+            demoCirclesMoved = false;
+            return true;
+        }
+#endif // !VISCOM_USE_SGCT
+
+            return false;
+        }
 
 }

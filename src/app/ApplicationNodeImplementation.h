@@ -16,6 +16,7 @@ namespace viscom {
 
 	struct demoSyncedInfo {
 		glm::vec3 circleData_;
+        glm::vec2 displayPos0_;
 	};
 
     class ApplicationNodeImplementation : public ApplicationNodeBase
@@ -33,16 +34,17 @@ namespace viscom {
         virtual void ClearBuffer(FrameBuffer& fbo) override;
         virtual void DrawFrame(FrameBuffer& fbo) override;
         virtual void CleanUp() override;
-		virtual void PreSync() override;
-        virtual void UpdateSyncedInfo() override;
 
-		void EncodeData() override;
-		void DecodeData() override;
+#ifdef VISCOM_USE_SGCT
+        virtual void PreSync() override;
+        virtual void UpdateSyncedInfo() override;
+        void EncodeData() override;
+        void DecodeData() override;
+#endif
 
         virtual bool KeyboardCallback(int key, int scancode, int action, int mods) override;
-		virtual bool MousePosCallback(double x, double y) override;
+        virtual bool MousePosCallback(double x, double y) override;
 
-        bool ControllerButtonPressedCallback(size_t trackedDeviceId, size_t buttonid, glm::vec2 axisvalues) override;
 
     private:
         /** Holds the shader program for drawing the background. */
@@ -108,11 +110,12 @@ namespace viscom {
         float circleMoveStartTime = 0.0f;
 
     protected:
-		/** Holds the synchronized object (local). */
-		demoSyncedInfo demoSyncInfoLocal_;
-		/** Holds the synchronized object (synced). */
-		sgct::SharedObject<demoSyncedInfo> demoSyncInfoSynced_;
-
+#ifdef VISCOM_USE_SGCT
+    /** Holds the synchronized object (local). */
+        demoSyncedInfo demoSyncInfoLocal_;
+        /** Holds the synchronized object (synced). */
+        sgct::SharedObject<demoSyncedInfo> demoSyncInfoSynced_;
+#endif
         /** Holds the mousePoint Model Matrix */
         glm::mat4 mousepointModelMatrix_;
         bool demoCirclesMoved = false;
@@ -120,5 +123,7 @@ namespace viscom {
         float circlex_ = 0.0f;
         float circley_ = 0.0f;
         int demoPoints = 0;
+        std::vector<DeviceInfo> connectedDevices_;
+        glm::vec2 displayPos;
     };
 }
