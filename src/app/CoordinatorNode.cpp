@@ -57,6 +57,14 @@ namespace viscom {
         //mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy, 0.0f));
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
     }
+    void CoordinatorNode::PreSync()
+    {
+        demoSyncInfoSynced_.setVal(demoSyncInfoLocal_);
+    }
+    void CoordinatorNode::UpdateSyncedInfo()
+    {
+        demoSyncInfoLocal_ = demoSyncInfoSynced_.getVal();
+    }
     //TODO Check if encode decode needed
 
     //TODO use all values from Master Node internal
