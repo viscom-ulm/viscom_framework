@@ -431,6 +431,50 @@ virtual void DecodeData();
 ~~~
 
 
+### UpdateFrame
+
+The UpdateFrame function is called each frame and is generally used to update the scene. All changes of the geometry or different cameras such as various transformations or status changes can be implemented in here.
+The function's parameters give information about the framework's current time and the time elapsed since the last frame.
+
+### ClearBuffer
+
+ClearBuffer is executed each frame before rendering the scene and can be used to clear the color, depth and stencil buffers of any framebuffer.
+The application's back buffer is given in the parameters and can be cleared as well.
+
+### DrawFrame
+
+The DrawFrame function is called every frame and is used for drawing the scene. An arbitrary amount of various OpenGL drawing actions can be implemented here.
+You can configure all OpenGL states and use all previously created framebuffers, textures, shaders and meshes for rendering.
+The final action in DrawFrame should always be to render to the application's back buffer provided in the function's parameters.
+By default the framework uses a counter clockwise vertex order, backface culling and depth testing when calling DrawFrame.
+
+### Draw2D
+
+Draw2D handles all 2D drawing actions and is called each frame after the DrawFrame function.
+You can use ImGUI to draw a graphical user interface to control the application and display information. The application's back buffer is provided in the parameters.
+
+### KeyboardCallback
+
+This function is called whenever the application receives keyboard input.
+The parameters give information about the GLFW key being pressed, a platform specific scancode, the action that is beeing performed and the active modifier key flags.
+
+### CharCallback
+
+This function is called to handle keyboard character input such as letters and numerals. The parameters provide information about the character and the modifier key flags.
+
+### MouseButtonCallback
+
+MouseButtonCallback is called when any action is performed on a mouse button. Information about the mouse button and the action are given in the parameters.
+
+### MousePosCallback
+
+The MousePosCallback function is used to retrieve the mouse cursor position and is called whenever changes to these values appear. The parameters provide the normalized cursor position for the used screen.
+
+### MouseScrollCallback
+
+This function handles mouse wheel input. The parameters provide the offset of the mouse wheel for each frame.
+
+
 General Concepts of the `VISCOMCore` Library
 ============================================
 
