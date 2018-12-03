@@ -447,92 +447,81 @@ General Concepts of the `VISCOMCore` Library
 Description of Important Classes and Methods of the `VISCOMCore` Library
 ========================================================================
 
-## Classes
+## [ApplicationNodeBase](html/classviscom_1_1_application_node_base.html)
 
-ApplicationNodeBase
+This class is the base for all nodes and provides the following important methods:
 
-FrameBuffer
+- [GetGPUProgramManager](html/classviscom_1_1_application_node_base.html#aab223b9a84069df9cdbbbf3fe2458f8a)
 
-Mesh
+- [GetTextureManager](html/classviscom_1_1_application_node_base.html#af8367eb3a783f5f9393c785b5c3a95b0)
 
-MeshRenderable
+- [GetMeshManager](html/classviscom_1_1_application_node_base.html#a1e1e4dcc106c4a2ea3a56955a613dc4e)
 
-Animation
-
-(SceneMeshNode)
-
-(SubMesh)
-
-Texture
-
-(Shader)
-
-ArcballCamera
-
-FreeCamera
-
-(CameraHelper)
-
-GPUProgram
-
-FullscreenQuad
+These three methods are used to retrieve the Framework's Managers.
 
 
-## Methods
+- [GetCamera](html/classviscom_1_1_application_node_base.html#a8440fa5875bfc1864abaa9c139e60672)
 
-### ApplicationNodeBase
+With this method you get the camera of the scene.
 
-UpdateFrame
 
-ClearFrame
+- [CreateOffscreenBuffers](html/classviscom_1_1_application_node_base.html#a629a016f82e4f5bf9ff3f118b7eac2bd)
 
-DrawFrame
+- [SelectOffscreenBuffer](html/classviscom_1_1_application_node_base.html#a614fbfc2a7d7fad8442d48b3ea820188)
 
-Draw2D
+With these two methods frame buffers for offscreen rendering can be created and retrieved.
+The first method yields a vector holding one frame buffer for each display. The second method returns the frame buffer for the current display.
 
-KeyboardCallback
+- [CreateFullscreenQuad](html/classviscom_1_1_application_node_base.html#a086f9629c2ec292d9a67ff2e116eec6c)
 
-CharCallback
+This method creates a fullscreen quad for rendering.
 
-MouseButtonCallback
 
-MousePosCallback
 
-MouseScrollCallback
 
-AddTuioCursor
+## [FrameBuffer](html/classviscom_1_1_frame_buffer.html)
 
-UpdateTuioCursor
+Frame buffers are used as render targets and can hold render buffers and texture buffers. The number and type of the used buffers are defined by descriptor objects.
 
-RemoveTuioCursor
+## [Mesh](html/classviscom_1_1_mesh.html)
 
-GetGPUProgramManager
+This class represents a mesh holding information such as vertices, materials and animations.
 
-GetTextureManager
+## [MeshRenderable](html/classviscom_1_1_mesh_renderable.html)
 
-GetMeshManager
+This class is a basic implementation of a mesh renderable and provides functionalities to render a mesh with a specific shader.
 
-GetCamera
+## [Animation](html/classviscom_1_1_animation.html)
 
-CreateOffscreenBuffers
+An animation holds all the keyframe data for each bone of an animated mesh.
 
-SelectOffscreenBuffer
+## [SceneMeshNode](html/classviscom_1_1_scene_mesh_node.html)
 
-CreateFullscreenQuad
+This class represents a node in the scene hierarchy and can hold meshes.
 
-(PreSync)
+## [SubMesh](html/classviscom_1_1_sub_mesh.html)
 
-(UpdateSyncedInfo)
+Sub meshes define a group of geometry and represent a part of a mesh.
 
-(DataTransferCallback)
+## [Texture](html/classviscom_1_1_texture.html)
 
-(DataAcknowledgeCallback)
+## [ArcballCamera](html/classviscom_1_1_arcball_camera.html)
 
-(DataTransferStatusCallback)
+The arcball camera is a simple camera implementation using an arcball.
 
-(EncodeData)
+## [FreeCamera](html/classviscom_1_1_free_camera.html)
 
-(DecodeData)
+The free camera is a simple implementation for a freely movable camera.
+
+## [CameraHelper](html/classviscom_1_1_camera_helper.html)
+
+This class is a helper class to realize camera movement.
+
+## [GPUProgram](html/classviscom_1_1_g_p_u_program.html)
+
+## [FullscreenQuad](html/classviscom_1_1_fullscreen_quad.html)
+
+This class realizes a renderable quad filling the whole screen as used in deferred shading or various post effects.
 
 
 <!-- Markdeep: --><script src="https://casual-effects.com/markdeep/markdeep.min.js"></script>
