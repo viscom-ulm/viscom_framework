@@ -383,7 +383,7 @@ There is basically three ways to create these nodes that might make sense in som
 ***********************************************
 [Figure [nodediagram]: Class diagram of coordinator and worker nodes sharing the same base class.]
 
-`ApplicationNodeBase` has 22 `virtual` methods that can (but do not need to) be overriden to add functionality to your application nodes.
+[`ApplicationNodeBase`](html/classviscom_1_1_application_node_base.html) has 22 `virtual` methods that can (but do not need to) be overriden to add functionality to your application nodes.
 These methods can be divided into four groups:
 - Application workflow
 - Input
@@ -457,7 +457,7 @@ This class is the base for all nodes and provides the following important method
 
 - [GetMeshManager](html/classviscom_1_1_application_node_base.html#a1e1e4dcc106c4a2ea3a56955a613dc4e)
 
-These three methods are used to retrieve the Framework's Managers.
+These three methods are used to retrieve the framework's resource managers.
 
 
 - [GetCamera](html/classviscom_1_1_application_node_base.html#a8440fa5875bfc1864abaa9c139e60672)
@@ -505,6 +505,12 @@ Sub meshes define a group of geometry and represent a part of a mesh.
 
 ## [Texture](html/classviscom_1_1_texture.html)
 
+The texture class is a wrapper for the OpneGL texture and holds methods to load image files from the hard drive.
+
+## [CameraBase](html/classviscom_1_1_camera_base.html)
+
+This is the base class for the framework's camera.
+
 ## [ArcballCamera](html/classviscom_1_1_arcball_camera.html)
 
 The arcball camera is a simple camera implementation using an arcball.
@@ -519,9 +525,16 @@ This class is a helper class to realize camera movement.
 
 ## [GPUProgram](html/classviscom_1_1_g_p_u_program.html)
 
+This class handles OpenGL shader objects and uniforms.
+
 ## [FullscreenQuad](html/classviscom_1_1_fullscreen_quad.html)
 
 This class realizes a renderable quad filling the whole screen as used in deferred shading or various post effects.
+
+## Viscom::Math
+
+There are several mathematical objects and shapes implemented such as axis aligned bounding boxes ([AABB](html/structviscom_1_1math_1_1_a_a_b_b.html)) and primitives like lines, triangles and frustums.
+The library also holds various methods for intersection tests.
 
 
 <!-- Markdeep: --><script src="https://casual-effects.com/markdeep/markdeep.min.js"></script>
