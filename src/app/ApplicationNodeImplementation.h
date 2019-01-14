@@ -13,6 +13,7 @@
 namespace viscom {
 
     class MeshRenderable;
+    class AnimMeshRenderable;
 
     class ApplicationNodeImplementation : public ApplicationNodeBase
     {
@@ -52,6 +53,11 @@ namespace viscom {
         /** Holds the location of the VP matrix. */
         GLint teapotVPLoc_ = -1;
 
+        /** Holds the shader program for drawing the animated foreground robot. */
+        std::shared_ptr<GPUProgram> robotProgram_;
+        /** Holds the location of the VP matrix. */
+        GLint robotVPLoc_ = -1;
+
         /** Holds the number of vertices of the background grid. */
         unsigned int numBackgroundVertices_ = 0;
         /** Holds the vertex buffer for the background grid. */
@@ -64,8 +70,14 @@ namespace viscom {
         /** Holds the teapot mesh renderable. */
         std::unique_ptr<MeshRenderable> teapotRenderable_;
 
+        /** Holds the robot mesh. */
+        std::shared_ptr<Mesh> robotMesh_;
+        /** Holds the robot mesh renderable. */
+        std::unique_ptr<AnimMeshRenderable> robotRenderable_;
+
         glm::mat4 triangleModelMatrix_;
         glm::mat4 teapotModelMatrix_;
+        glm::mat4 robotModelMatrix_;
         glm::vec3 camPos_;
         glm::vec3 camRot_;
     };

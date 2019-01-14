@@ -10,6 +10,7 @@
 #include "Vertices.h"
 #include <imgui.h>
 #include "core/gfx/mesh/MeshRenderable.h"
+#include "core/gfx/mesh/AnimMeshRenderable.h"
 #include <iostream>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -37,6 +38,9 @@ namespace viscom {
         teapotModelMLoc_ = teapotProgram_->getUniformLocation("modelMatrix");
         teapotNormalMLoc_ = teapotProgram_->getUniformLocation("normalMatrix");
         teapotVPLoc_ = teapotProgram_->getUniformLocation("viewProjectionMatrix");
+
+        robotProgram_ = GetGPUProgramManager().GetResource("foregroundAnimatedMesh", std::vector<std::string>{ "foregroundAnimatedMesh.vert", "foregroundMesh.frag" });
+        robotVPLoc_ = robotProgram_->getUniformLocation("viewProjectionMatrix");
 
         std::vector<GridVertex> gridVertices;
 
@@ -82,6 +86,9 @@ namespace viscom {
 
         teapotMesh_ = GetMeshManager().GetResource("/models/teapot/teapot.obj");
         teapotRenderable_ = MeshRenderable::create<SimpleMeshVertex>(teapotMesh_.get(), teapotProgram_.get());
+
+        robotMesh_ = GetMeshManager().GetResource("/models/robot2/robot2.fbx");
+        robotRenderable_ = AnimMeshRenderable::create<AnimMeshVertex>(robotMesh_.get(), robotProgram_.get());
     }
 
     void ApplicationNodeImplementation::UpdateFrame(double currentTime, double)
@@ -94,6 +101,7 @@ namespace viscom {
 
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
+        robotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(0.0f, 0.0f, -0.8f)), 0.0f * static_cast<float>(currentTime), glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(0.01f));
     }
 
     void ApplicationNodeImplementation::ClearBuffer(FrameBuffer& fbo)
@@ -133,6 +141,12 @@ namespace viscom {
                 glUniformMatrix4fv(teapotNormalMLoc_, 1, GL_FALSE, glm::value_ptr(normalMatrix));
                 glUniformMatrix4fv(teapotVPLoc_, 1, GL_FALSE, glm::value_ptr(MVP));
                 teapotRenderable_->Draw(teapotModelMatrix_);
+            }
+
+            {
+                glUseProgram(robotProgram_->getProgramId());
+                glUniformMatrix4fv(robotVPLoc_, 1, GL_FALSE, glm::value_ptr(MVP));
+                robotRenderable_->DrawAnimated(robotModelMatrix_, 0, 0.0);
             }
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
