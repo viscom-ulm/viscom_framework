@@ -22,12 +22,6 @@ namespace viscom {
     ApplicationNodeImplementation::ApplicationNodeImplementation(ApplicationNodeInternal* appNode) :
         ApplicationNodeBase{ appNode }
     {
-    }
-
-    ApplicationNodeImplementation::~ApplicationNodeImplementation() = default;
-
-    void ApplicationNodeImplementation::InitOpenGL()
-    {
         backgroundProgram_ = GetGPUProgramManager().GetResource("backgroundGrid", std::vector<std::string>{ "backgroundGrid.vert", "backgroundGrid.frag" });
         backgroundMVPLoc_ = backgroundProgram_->getUniformLocation("MVP");
 
@@ -91,8 +85,17 @@ namespace viscom {
         robotRenderable_ = AnimMeshRenderable::create<AnimMeshVertex>(robotMesh_.get(), robotProgram_.get());
     }
 
+    ApplicationNodeImplementation::~ApplicationNodeImplementation()
+    {
+        if (vaoBackgroundGrid_ != 0) glDeleteVertexArrays(1, &vaoBackgroundGrid_);
+        vaoBackgroundGrid_ = 0;
+        if (vboBackgroundGrid_ != 0) glDeleteBuffers(1, &vboBackgroundGrid_);
+        vboBackgroundGrid_ = 0;
+    }
+
     void ApplicationNodeImplementation::UpdateFrame(double currentTime, double)
     {
+        currentTime_ = currentTime;
         GetCamera()->SetPosition(camPos_);
         glm::quat pitchQuat = glm::angleAxis(camRot_.x, glm::vec3(1.0f, 0.0f, 0.0f));
         glm::quat yawQuat = glm::angleAxis(camRot_.y, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -101,7 +104,7 @@ namespace viscom {
 
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
-        robotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(0.0f, 0.0f, -0.8f)), 0.0f * static_cast<float>(currentTime), glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(0.01f));
+        robotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(0.0f, -0.2f, 0.0f)), 0.0f * static_cast<float>(currentTime), glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(0.01f));
     }
 
     void ApplicationNodeImplementation::ClearBuffer(FrameBuffer& fbo)
@@ -146,21 +149,13 @@ namespace viscom {
             {
                 glUseProgram(robotProgram_->getProgramId());
                 glUniformMatrix4fv(robotVPLoc_, 1, GL_FALSE, glm::value_ptr(MVP));
-                robotRenderable_->DrawAnimated(robotModelMatrix_, 0, 0.0);
+                robotRenderable_->DrawAnimated(robotModelMatrix_, 0, currentTime_);
             }
 
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
             glUseProgram(0);
         });
-    }
-
-    void ApplicationNodeImplementation::CleanUp()
-    {
-        if (vaoBackgroundGrid_ != 0) glDeleteVertexArrays(1, &vaoBackgroundGrid_);
-        vaoBackgroundGrid_ = 0;
-        if (vboBackgroundGrid_ != 0) glDeleteBuffers(1, &vboBackgroundGrid_);
-        vboBackgroundGrid_ = 0;
     }
 
     bool ApplicationNodeImplementation::KeyboardCallback(int key, int scancode, int action, int mods)

@@ -76,11 +76,11 @@ namespace viscom {
         glm::vec3 position_;
         glm::vec3 normal_;
         glm::vec2 texCoords_;
-        glm::vec4 boneIndices_;
+        glm::uvec4 boneIndices_;
         glm::vec4 boneWeights_;
 
-        AnimMeshVertex() : position_(0.0f), normal_(0.0f), texCoords_(0.0f), boneIndices_(0.0f), boneWeights_(0.0f) {}
-        AnimMeshVertex(const glm::vec3& pos, const glm::vec3& normal, const glm::vec2& tex, glm::vec4& indices, glm::vec4& weights) : position_(pos), normal_(normal), texCoords_(tex), boneIndices_(indices), boneWeights_(weights) {}
+        AnimMeshVertex() : position_(0.0f), normal_(0.0f), texCoords_(0.0f), boneIndices_(0), boneWeights_(0.0f) {}
+        AnimMeshVertex(const glm::vec3& pos, const glm::vec3& normal, const glm::vec2& tex, const glm::uvec4& indices, const glm::vec4& weights) : position_(pos), normal_(normal), texCoords_(tex), boneIndices_(indices), boneWeights_(weights) {}
         static void SetVertexAttributes(const GPUProgram* program)
         {
             auto attribLoc = program->GetAttributeLocations({ "position", "normal", "texCoords", "indices", "weights" });
@@ -99,7 +99,7 @@ namespace viscom {
             }
             if (attribLoc[3] != -1) {
                 glEnableVertexAttribArray(attribLoc[3]);
-                glVertexAttribPointer(attribLoc[3], 4, GL_FLOAT, GL_FALSE, sizeof(AnimMeshVertex), reinterpret_cast<GLvoid*>(offsetof(AnimMeshVertex, boneIndices_)));
+                glVertexAttribIPointer(attribLoc[3], 4, GL_UNSIGNED_INT, sizeof(AnimMeshVertex), reinterpret_cast<GLvoid*>(offsetof(AnimMeshVertex, boneIndices_)));
             }
             if (attribLoc[4] != -1) {
                 glEnableVertexAttribArray(attribLoc[4]);

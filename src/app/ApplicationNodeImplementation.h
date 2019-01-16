@@ -25,11 +25,9 @@ namespace viscom {
         ApplicationNodeImplementation& operator=(ApplicationNodeImplementation&&) = delete;
         virtual ~ApplicationNodeImplementation() override;
 
-        virtual void InitOpenGL() override;
         virtual void UpdateFrame(double currentTime, double elapsedTime) override;
         virtual void ClearBuffer(FrameBuffer& fbo) override;
         virtual void DrawFrame(FrameBuffer& fbo) override;
-        virtual void CleanUp() override;
 
         virtual bool KeyboardCallback(int key, int scancode, int action, int mods) override;
 
@@ -75,10 +73,11 @@ namespace viscom {
         /** Holds the robot mesh renderable. */
         std::unique_ptr<AnimMeshRenderable> robotRenderable_;
 
-        glm::mat4 triangleModelMatrix_;
-        glm::mat4 teapotModelMatrix_;
-        glm::mat4 robotModelMatrix_;
-        glm::vec3 camPos_;
-        glm::vec3 camRot_;
+        glm::mat4 triangleModelMatrix_ = glm::mat4{ 1.0f };
+        glm::mat4 teapotModelMatrix_ = glm::mat4{ 1.0f };
+        glm::mat4 robotModelMatrix_ = glm::mat4{ 1.0f };
+        glm::vec3 camPos_ = glm::vec3{ 0.0f };
+        glm::vec3 camRot_ = glm::vec3{ 0.0f };
+        double currentTime_ = 0.0f;
     };
 }
