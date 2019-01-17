@@ -21,13 +21,13 @@ out vec2 vTexCoords;
 vec4 skin_position(vec4 pos)
 {
     float sumWeights = weights[0] + weights[1] + weights[2] + weights[3];
-    
     vec4 result = (1.0f - sumWeights) * pos;
     result = result + weights[0] * skinningMatrices[indices[0]] * pos;
     result = result + weights[1] * skinningMatrices[indices[1]] * pos;
     result = result + weights[2] * skinningMatrices[indices[2]] * pos;
     result = result + weights[3] * skinningMatrices[indices[3]] * pos;
 
+    if (sumWeights > 0.0001f) result = invNodeMatrix * result;
     return result;
 }
 
@@ -35,7 +35,7 @@ void main()
 {
     vec4 skinned_position = skin_position(vec4(position, 1.0));
 
-    vec4 posV4 = modelMatrix * invNodeMatrix * skinned_position;
+    vec4 posV4 = modelMatrix * skinned_position;
     vPosition = vec3(posV4);
     vNormal = normalize(normalMatrix * normal);
     vTexCoords = texCoords;

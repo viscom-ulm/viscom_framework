@@ -14,6 +14,7 @@ namespace viscom {
 
     class MeshRenderable;
     class AnimMeshRenderable;
+    class AnimationState;
 
     class ApplicationNodeImplementation : public ApplicationNodeBase
     {
@@ -44,10 +45,6 @@ namespace viscom {
 
         /** Holds the shader program for drawing the foreground teapot. */
         std::shared_ptr<GPUProgram> teapotProgram_;
-        /** Holds the location of the model matrix. */
-        GLint teapotModelMLoc_ = -1;
-        /** Holds the location of the normal matrix. */
-        GLint teapotNormalMLoc_ = -1;
         /** Holds the location of the VP matrix. */
         GLint teapotVPLoc_ = -1;
 
@@ -72,12 +69,13 @@ namespace viscom {
         std::shared_ptr<Mesh> robotMesh_;
         /** Holds the robot mesh renderable. */
         std::unique_ptr<AnimMeshRenderable> robotRenderable_;
+        /** Holds the robot meshes animation state. */
+        std::unique_ptr<AnimationState> robotAnimationState_;
 
         glm::mat4 triangleModelMatrix_ = glm::mat4{ 1.0f };
         glm::mat4 teapotModelMatrix_ = glm::mat4{ 1.0f };
         glm::mat4 robotModelMatrix_ = glm::mat4{ 1.0f };
         glm::vec3 camPos_ = glm::vec3{ 0.0f };
         glm::vec3 camRot_ = glm::vec3{ 0.0f };
-        double currentTime_ = 0.0f;
     };
 }
