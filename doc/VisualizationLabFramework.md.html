@@ -383,7 +383,7 @@ There is basically three ways to create these nodes that might make sense in som
 ***********************************************
 [Figure [nodediagram]: Class diagram of coordinator and worker nodes sharing the same base class.]
 
-`ApplicationNodeBase` has 22 `virtual` methods that can (but do not need to) be overriden to add functionality to your application nodes.
+[`ApplicationNodeBase`](html/classviscom_1_1_application_node_base.html) has 22 `virtual` methods that can (but do not need to) be overriden to add functionality to your application nodes.
 These methods can be divided into four groups:
 - Application workflow
 - Input
@@ -401,6 +401,8 @@ virtual void UpdateFrame(double currentTime, double elapsedTime);
 virtual void CleanUp();
 ~~~
 
+These methods define the application's basic workflow. They can be used to initialize the framework, set up objects and data, update these each frame and clean them up when exiting the application.
+
 ~~~
 virtual bool KeyboardCallback(int key, int scancode, int action, int mods);
 virtual bool CharCallback(unsigned int character, int mods);
@@ -413,11 +415,17 @@ virtual bool UpdateTuioCursor(TUIO::TuioCursor *tcur);
 virtual bool RemoveTuioCursor(TUIO::TuioCursor *tcur);
 ~~~
 
+The methods in this group handle all user input. There is a different method for each type of keyboard or mouse event which can be implemented to controll the application.
+Additionally, the Tuio functions can be used for touch screen interfaces.
+
 ~~~
 virtual void ClearBuffer(FrameBuffer& fbo);
 virtual void DrawFrame(FrameBuffer& fbo);
 virtual void Draw2D(FrameBuffer& fbo);
 ~~~
+
+The methods in this group provide render functionality such as clearing frame buffers and drawing meshes and 2D elements to the screen.
+They can be called multiple times per frame and are also used for off screen rendering.
 
 ~~~
 virtual bool DataTransferCallback(void* receivedData, int receivedLength, std::uint16_t packageID, int clientID);
@@ -430,12 +438,103 @@ virtual void EncodeData();
 virtual void DecodeData();
 ~~~
 
+These methods can be used to transfer data, share resources between nodes and ensure the applications's synchronization.
+
 
 General Concepts of the `VISCOMCore` Library
 ============================================
 
 Description of Important Classes and Methods of the `VISCOMCore` Library
 ========================================================================
+
+## [ApplicationNodeBase](html/classviscom_1_1_application_node_base.html)
+
+This class is the base for all nodes and provides the following important methods:
+
+- [GetGPUProgramManager](html/classviscom_1_1_application_node_base.html#aab223b9a84069df9cdbbbf3fe2458f8a)
+
+- [GetTextureManager](html/classviscom_1_1_application_node_base.html#af8367eb3a783f5f9393c785b5c3a95b0)
+
+- [GetMeshManager](html/classviscom_1_1_application_node_base.html#a1e1e4dcc106c4a2ea3a56955a613dc4e)
+
+These three methods are used to retrieve the framework's resource managers.
+
+
+- [GetCamera](html/classviscom_1_1_application_node_base.html#a8440fa5875bfc1864abaa9c139e60672)
+
+With this method you get the camera of the scene.
+
+
+- [CreateOffscreenBuffers](html/classviscom_1_1_application_node_base.html#a629a016f82e4f5bf9ff3f118b7eac2bd)
+
+- [SelectOffscreenBuffer](html/classviscom_1_1_application_node_base.html#a614fbfc2a7d7fad8442d48b3ea820188)
+
+With these two methods frame buffers for offscreen rendering can be created and retrieved.
+The first method yields a vector holding one frame buffer for each display. The second method returns the frame buffer for the current display.
+
+- [CreateFullscreenQuad](html/classviscom_1_1_application_node_base.html#a086f9629c2ec292d9a67ff2e116eec6c)
+
+This method creates a fullscreen quad for rendering.
+
+
+
+
+## [FrameBuffer](html/classviscom_1_1_frame_buffer.html)
+
+Frame buffers are used as render targets and can hold render buffers and texture buffers. The number and type of the used buffers are defined by descriptor objects.
+
+## [Mesh](html/classviscom_1_1_mesh.html)
+
+This class represents a mesh holding information such as vertices, materials and animations.
+
+## [MeshRenderable](html/classviscom_1_1_mesh_renderable.html)
+
+This class is a basic implementation of a mesh renderable and provides functionalities to render a mesh with a specific shader.
+
+## [Animation](html/classviscom_1_1_animation.html)
+
+An animation holds all the keyframe data for each bone of an animated mesh.
+
+## [SceneMeshNode](html/classviscom_1_1_scene_mesh_node.html)
+
+This class represents a node in the scene hierarchy and can hold meshes.
+
+## [SubMesh](html/classviscom_1_1_sub_mesh.html)
+
+Sub meshes define a group of geometry and represent a part of a mesh.
+
+## [Texture](html/classviscom_1_1_texture.html)
+
+The texture class is a wrapper for the OpneGL texture and holds methods to load image files from the hard drive.
+
+## [CameraBase](html/classviscom_1_1_camera_base.html)
+
+This is the base class for the framework's camera.
+
+## [ArcballCamera](html/classviscom_1_1_arcball_camera.html)
+
+The arcball camera is a simple camera implementation using an arcball.
+
+## [FreeCamera](html/classviscom_1_1_free_camera.html)
+
+The free camera is a simple implementation for a freely movable camera.
+
+## [CameraHelper](html/classviscom_1_1_camera_helper.html)
+
+This class is a helper class to realize camera movement.
+
+## [GPUProgram](html/classviscom_1_1_g_p_u_program.html)
+
+This class handles OpenGL shader objects and uniforms.
+
+## [FullscreenQuad](html/classviscom_1_1_fullscreen_quad.html)
+
+This class realizes a renderable quad filling the whole screen as used in deferred shading or various post effects.
+
+## Viscom::Math
+
+There are several mathematical objects and shapes implemented such as axis aligned bounding boxes ([AABB](html/structviscom_1_1math_1_1_a_a_b_b.html)) and primitives like lines, triangles and frustums.
+The library also holds various methods for intersection tests.
 
 
 <!-- Markdeep: --><script src="https://casual-effects.com/markdeep/markdeep.min.js"></script>

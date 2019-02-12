@@ -13,6 +13,8 @@
 namespace viscom {
 
     class MeshRenderable;
+    class AnimMeshRenderable;
+    class AnimationState;
 
 	struct demoSyncedInfo {
 		glm::vec3 circleData_;
@@ -29,11 +31,9 @@ namespace viscom {
         ApplicationNodeImplementation& operator=(ApplicationNodeImplementation&&) = delete;
         virtual ~ApplicationNodeImplementation() override;
 
-        virtual void InitOpenGL() override;
         virtual void UpdateFrame(double currentTime, double elapsedTime) override;
         virtual void ClearBuffer(FrameBuffer& fbo) override;
         virtual void DrawFrame(FrameBuffer& fbo) override;
-        virtual void CleanUp() override;
 
 #ifdef VISCOM_USE_SGCT
         virtual void PreSync() override;
@@ -71,12 +71,13 @@ namespace viscom {
 
         /** Holds the shader program for drawing the foreground teapot. */
         std::shared_ptr<GPUProgram> teapotProgram_;
-        /** Holds the location of the model matrix. */
-        GLint teapotModelMLoc_ = -1;
-        /** Holds the location of the normal matrix. */
-        GLint teapotNormalMLoc_ = -1;
         /** Holds the location of the VP matrix. */
         GLint teapotVPLoc_ = -1;
+
+        /** Holds the shader program for drawing the animated foreground robot. */
+        std::shared_ptr<GPUProgram> robotProgram_;
+        /** Holds the location of the VP matrix. */
+        GLint robotVPLoc_ = -1;
 
         /** Holds the number of vertices of the background grid. */
         unsigned int numBackgroundVertices_ = 0;
@@ -98,14 +99,18 @@ namespace viscom {
         /** Holds the teapot mesh renderable. */
         std::unique_ptr<MeshRenderable> teapotRenderable_;
 
-        glm::mat4 triangleModelMatrix_;
-        glm::mat4 teapotModelMatrix_;
-        glm::vec3 camPos_;
-        glm::vec3 camRot_;
-        double posx, posy, posdx, posdy;
-        glm::mat4 demoCirclesModelMatrix_;
-        
+        /** Holds the robot mesh. */
+        std::shared_ptr<Mesh> robotMesh_;
+        /** Holds the robot mesh renderable. */
+        std::unique_ptr<AnimMeshRenderable> robotRenderable_;
+        /** Holds the robot meshes animation state. */
+        std::unique_ptr<AnimationState> robotAnimationState_;
 
+        glm::mat4 triangleModelMatrix_ = glm::mat4{ 1.0f };
+        glm::mat4 teapotModelMatrix_ = glm::mat4{ 1.0f };
+        glm::mat4 robotModelMatrix_ = glm::mat4{ 1.0f };
+        glm::vec3 camPos_ = glm::vec3{ 0.0f };
+        glm::vec3 camRot_ = glm::vec3{ 0.0f };
         
         float circleMoveStartTime = 0.0f;
 
