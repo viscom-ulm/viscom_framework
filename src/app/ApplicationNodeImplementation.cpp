@@ -23,21 +23,14 @@ namespace viscom {
     ApplicationNodeImplementation::ApplicationNodeImplementation(ApplicationNodeInternal* appNode) :
         ApplicationNodeBase{ appNode }
     {
-        
-    }
-
-    ApplicationNodeImplementation::~ApplicationNodeImplementation() = default;
-
-    void ApplicationNodeImplementation::InitOpenGL()
-    {
         LOG(INFO) << "InitOpenGL called in AppNImpl";
-        
+
         backgroundProgram_ = GetGPUProgramManager().GetResource("backgroundGrid", std::vector<std::string>{ "backgroundGrid.vert", "backgroundGrid.frag" });
         backgroundMVPLoc_ = backgroundProgram_->getUniformLocation("MVP");
 
         triangleProgram_ = GetGPUProgramManager().GetResource("foregroundTriangle", std::vector<std::string>{ "foregroundTriangle.vert", "foregroundTriangle.frag" });
         triangleMVPLoc_ = triangleProgram_->getUniformLocation("MVP");
-        
+
         mousepointProgram_ = GetGPUProgramManager().GetResource("mousePoint", std::vector<std::string>{"mousePoint.vert", "mousePoint.frag"});
         mousepointMVPLoc_ = mousepointProgram_->getUniformLocation("MVP");
 
@@ -86,7 +79,7 @@ namespace viscom {
             circleVertices.emplace_back(glm::vec3(radius*cos(i * twicePi / 100), radius*sin(i * twicePi / 100), 0.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
         }
         //circleVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
-        
+
         numCirclesVertices_ = static_cast<unsigned int>(circleVertices.size());
 
         glGenBuffers(1, &vboBackgroundGrid_);
@@ -278,13 +271,6 @@ namespace viscom {
         });
     }
 
-    void ApplicationNodeImplementation::CleanUp()
-    {
-        if (vaoBackgroundGrid_ != 0) glDeleteVertexArrays(1, &vaoBackgroundGrid_);
-        vaoBackgroundGrid_ = 0;
-        if (vboBackgroundGrid_ != 0) glDeleteBuffers(1, &vboBackgroundGrid_);
-        vboBackgroundGrid_ = 0;
-    }
 #ifdef VISCOM_USE_SGCT
     void ApplicationNodeImplementation::PreSync()
     {
@@ -366,8 +352,6 @@ namespace viscom {
     '   @return bool if procedure was done succesfull.
     */
     bool ApplicationNodeImplementation::MousePosCallback(double x, double y) {
-
-        if (ApplicationNodeBase::MousePosCallback(x, y)) return true;
 
         if (posx != x || posy != y) {
             posx = x;

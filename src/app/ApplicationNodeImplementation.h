@@ -16,10 +16,10 @@ namespace viscom {
     class AnimMeshRenderable;
     class AnimationState;
 
-	struct demoSyncedInfo {
-		glm::vec3 circleData_;
+    struct demoSyncedInfo {
+        glm::vec3 circleData_;
         glm::vec2 displayPos0_;
-	};
+    };
 
     class ApplicationNodeImplementation : public ApplicationNodeBase
     {
@@ -56,11 +56,11 @@ namespace viscom {
         std::shared_ptr<GPUProgram> triangleProgram_;
         /** Holds the location of the MVP matrix. */
         GLint triangleMVPLoc_ = -1;
-		
-		/** Holds the shader program for drawing the Mousepoint. */
-		std::shared_ptr<GPUProgram> mousepointProgram_;
-		/** Holds the location of the MVP matrix. */
-		GLint mousepointMVPLoc_ = -1;
+
+        /** Holds the shader program for drawing the Mousepoint. */
+        std::shared_ptr<GPUProgram> mousepointProgram_;
+        /** Holds the location of the MVP matrix. */
+        GLint mousepointMVPLoc_ = -1;
 
         /** Holds the shader program for drawing the demoCircles. */
         std::shared_ptr<GPUProgram> demoCirclesProgram_;
@@ -111,12 +111,15 @@ namespace viscom {
         glm::mat4 robotModelMatrix_ = glm::mat4{ 1.0f };
         glm::vec3 camPos_ = glm::vec3{ 0.0f };
         glm::vec3 camRot_ = glm::vec3{ 0.0f };
+
+        double posx, posy, posdx, posdy;
+        glm::mat4 demoCirclesModelMatrix_;
         
         float circleMoveStartTime = 0.0f;
 
     protected:
 #ifdef VISCOM_USE_SGCT
-    /** Holds the synchronized object (local). */
+        /** Holds the synchronized object (local). */
         demoSyncedInfo demoSyncInfoLocal_;
         /** Holds the synchronized object (synced). */
         sgct::SharedObject<demoSyncedInfo> demoSyncInfoSynced_;
@@ -128,7 +131,7 @@ namespace viscom {
         float circlex_ = 0.0f;
         float circley_ = 0.0f;
         int demoPoints = 0;
-        std::vector<DeviceInfo> connectedDevices_;
+        std::vector<ovr::DeviceInfo> connectedDevices_;
         glm::vec2 displayPos;
     };
 }

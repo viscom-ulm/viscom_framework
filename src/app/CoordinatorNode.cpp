@@ -17,32 +17,22 @@ namespace viscom {
     CoordinatorNode::CoordinatorNode(ApplicationNodeInternal* appNode) :
         ApplicationNodeImplementation{ appNode }
     {
-
+        initVr_ = InitialiseVR();
+        InitialiseDisplayVR();
     }
 
     CoordinatorNode::~CoordinatorNode() = default;
 
-    void CoordinatorNode::InitOpenGL() 
-    {
-        initVr_ = InitialiseVR();
-        InitialiseDisplayVR();
-        ApplicationNodeImplementation::InitOpenGL();
-    }
-
-    void CoordinatorNode::CleanUp() {
-        ApplicationNodeBase::CleanUp();
-    }
-
     //TODO cleanup and fix
     void CoordinatorNode::UpdateFrame(double currenttime, double elapsedtime) {
         connectedDevices_ = GetConnectedDevices();
-        size_t controllerindex=0;
-        for (DeviceInfo d : connectedDevices_) {
-            if (useLeftHandController&& d.deviceRole == TrackedDeviceRole::CONTROLLER_LEFT_HAND) {
-                controllerindex = d.deviceId;
+        std::uint32_t controllerindex = 0;
+        for (ovr::DeviceInfo d : connectedDevices_) {
+            if (useLeftHandController&& d.deviceRole_ == ovr::TrackedDeviceRole::CONTROLLER_LEFT_HAND) {
+                controllerindex = d.deviceId_;
             }
-            if (!useLeftHandController && d.deviceRole == TrackedDeviceRole::CONTROLLER_RIGHT_HAND) {
-                controllerindex = d.deviceId;
+            if (!useLeftHandController && d.deviceRole_ == ovr::TrackedDeviceRole::CONTROLLER_RIGHT_HAND) {
+                controllerindex = d.deviceId_;
             }
         }
         displayPos = GetDisplayPointerPosition(controllerindex);
@@ -57,6 +47,9 @@ namespace viscom {
         //mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy, 0.0f));
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
     }
+
+
+#ifdef VISCOM_USE_SGCT
     void CoordinatorNode::PreSync()
     {
         demoSyncInfoSynced_.setVal(demoSyncInfoLocal_);
@@ -66,6 +59,7 @@ namespace viscom {
         demoSyncInfoLocal_ = demoSyncInfoSynced_.getVal();
     }
     //TODO Check if encode decode needed
+#endif
 
     //TODO use all values from Master Node internal
     void CoordinatorNode::Draw2D(FrameBuffer& fbo)
@@ -79,24 +73,24 @@ namespace viscom {
             {
                 ImGui::Text("Hello World on Master!");
                 if (initVr_) {
-                    ImGui::Text("Vr Init succesful");
+                    ImGui::Text("VR Init successful");
                     ImGui::Checkbox("Use left controller as main controller", &useLeftHandController);
                     ImGui::NewLine();
 
-                    size_t trackerid = 65;
+                    std::uint32_t trackerid = 65;
                     glm::vec3 position = glm::vec3();
                     glm::vec3 zvector = glm::vec3();
                     glm::quat rotation = glm::quat();
-                    for (DeviceInfo d : connectedDevices_) {
-                        if (d.deviceClass == TrackedDeviceClass::CONTROLLER) {
-                            glm::vec3 position = GetControllerPosition(d.deviceId);
-                            glm::vec3 zvector = GetControllerZVector(d.deviceId);
-                            glm::quat rotation = GetControllerRotation(d.deviceId);
-                            ImGui::Text("Controller %i: position x: %.2f, y: %.2f, z: %.2f", d.deviceId, position[0], position[1], position[2]);
+                    for (ovr::DeviceInfo d : connectedDevices_) {
+                        if (d.deviceClass_ == ovr::TrackedDeviceClass::CONTROLLER) {
+                            glm::vec3 position = GetControllerPosition(d.deviceId_);
+                            glm::vec3 zvector = GetControllerDirection(d.deviceId_);
+                            glm::quat rotation = GetControllerOrientation(d.deviceId_);
+                            ImGui::Text("Controller %i: position x: %.2f, y: %.2f, z: %.2f", d.deviceId_, position[0], position[1], position[2]);
                             ImGui::Text("              zVector x: %.2f, y: %.2f, z: %.2f", zvector[0], zvector[1], zvector[2]);
                             ImGui::Text("              rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
                         }
-                        if (d.deviceClass == TrackedDeviceClass::GENERIC_TRACKER) trackerid = d.deviceId;
+                        if (d.deviceClass_ == ovr::TrackedDeviceClass::GENERIC_TRACKER) trackerid = d.deviceId_;
                     }
 
                     ImGui::NewLine();
@@ -104,48 +98,48 @@ namespace viscom {
                     //ImGui::Text("midDisplaypos x: %.2f y: %.2f z: %.2f", midDisplayPos.v[0], midDisplayPos.v[1], midDisplayPos.v[2]);
                     if (trackerid != 65) {
                         position = GetControllerPosition(trackerid);
-                        rotation = GetControllerRotation(trackerid);
+                        rotation = GetControllerOrientation(trackerid);
                         ImGui::Text("Tracker    position x: %.2f, y: %.2f, z: %.2f", position[0], position[1], position[2]);
                         ImGui::Text("           rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
                     }
                     //ImGui::Text("SGCT Tracker Position x: %.2f, y: %.2f, z: %.2f", sgctTrackerPos.v[0], sgctTrackerPos.v[1], sgctTrackerPos.v[2]);
                     ImGui::NewLine();
                     if (ImGui::Button("Calibrate by Touching")) {
-                        CalibrateVR(CalibrateMethod::CALIBRATE_BY_TOUCHING);
+                        CalibrateVR(ovr::CalibrateMethod::CALIBRATE_BY_TOUCHING);
                     }
                     if (ImGui::Button("Calibrate by Pointing")) {
-                        CalibrateVR(CalibrateMethod::CALIBRATE_BY_POINTING);
+                        CalibrateVR(ovr::CalibrateMethod::CALIBRATE_BY_POINTING);
                     }
                     ImGui::NewLine();
                     ImGui::Text("Connected devices:");
-                    for (DeviceInfo d : connectedDevices_) {
-                        switch (d.deviceClass)
+                    for (ovr::DeviceInfo d : connectedDevices_) {
+                        switch (d.deviceClass_)
                         {
-                        case TrackedDeviceClass::CONTROLLER:
-                            switch (d.deviceRole)
+                        case ovr::TrackedDeviceClass::CONTROLLER:
+                            switch (d.deviceRole_)
                             {
-                            case TrackedDeviceRole::CONTROLLER_LEFT_HAND:
-                                ImGui::Text("Controller %i Role: Left Hand Controller", d.deviceId);
+                            case ovr::TrackedDeviceRole::CONTROLLER_LEFT_HAND:
+                                ImGui::Text("Controller %i Role: Left Hand Controller", d.deviceId_);
                                 break;
-                            case TrackedDeviceRole::CONTROLLER_RIGHT_HAND:
-                                ImGui::Text("Controller %i Role: Right Hand Controller", d.deviceId);
+                            case ovr::TrackedDeviceRole::CONTROLLER_RIGHT_HAND:
+                                ImGui::Text("Controller %i Role: Right Hand Controller", d.deviceId_);
                                 break;
                             default:
-                                ImGui::Text("Controller %i Role: No Role", d.deviceId);
+                                ImGui::Text("Controller %i Role: No Role", d.deviceId_);
                                 break;
                             }
                             break;
-                        case TrackedDeviceClass::GENERIC_TRACKER:
-                            ImGui::Text("Tracker %i Role: Generic Tracker", d.deviceId);
+                        case ovr::TrackedDeviceClass::GENERIC_TRACKER:
+                            ImGui::Text("Tracker %i Role: Generic Tracker", d.deviceId_);
                             break;
-                        case TrackedDeviceClass::HMD:
-                            ImGui::Text("HMD %i ", d.deviceId);
+                        case ovr::TrackedDeviceClass::HMD:
+                            ImGui::Text("HMD %i ", d.deviceId_);
                             break;
-                        case TrackedDeviceClass::DISPLAY_REDIRECT:
-                            ImGui::Text("Display Redirect %i", d.deviceId);
+                        case ovr::TrackedDeviceClass::DISPLAY_REDIRECT:
+                            ImGui::Text("Display Redirect %i", d.deviceId_);
                             break;
-                        case TrackedDeviceClass::TRACKING_REFERENCE:
-                            ImGui::Text("Tracking Referende %i", d.deviceId);
+                        case ovr::TrackedDeviceClass::TRACKING_REFERENCE:
+                            ImGui::Text("Tracking Reference %i", d.deviceId_);
                             break;
                         default:
                             break;
@@ -154,7 +148,7 @@ namespace viscom {
                     
                 }
                 if (!initVr_) {
-                    ImGui::Text("Open VR not initialised! Please start SteamVR.");
+                    ImGui::Text("Open VR not initialized! Please start SteamVR.");
                 }
                 if (ImGui::Button("Reset Demo Circle")) {
                     demoCirclesMoved = false;
@@ -167,7 +161,7 @@ namespace viscom {
         ApplicationNodeImplementation::Draw2D(fbo);
     }
 
-    bool CoordinatorNode::ControllerButtonPressedCallback(size_t trackedDeviceId, size_t buttonid, glm::vec2 axisvalues) {
+    bool CoordinatorNode::ControllerButtonPressedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid, glm::vec2 axisvalues) {
         if (ApplicationNodeBase::ControllerButtonPressedCallback(trackedDeviceId, buttonid, axisvalues)) return true;
         glm::vec2 displayPos = GetDisplayPointerPosition(trackedDeviceId);
 #ifdef VISCOM_USE_SGCT
