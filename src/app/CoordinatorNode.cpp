@@ -161,7 +161,7 @@ namespace viscom {
         ApplicationNodeImplementation::Draw2D(fbo);
     }
 
-    bool CoordinatorNode::ControllerButtonPressedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid, glm::vec2 axisvalues) {
+    bool CoordinatorNode::ControllerButtonPressedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid, const glm::vec2& axisvalues) {
         if (ApplicationNodeBase::ControllerButtonPressedCallback(trackedDeviceId, buttonid, axisvalues)) return true;
         glm::vec2 displayPos = GetDisplayPointerPosition(trackedDeviceId);
 #ifdef VISCOM_USE_SGCT
