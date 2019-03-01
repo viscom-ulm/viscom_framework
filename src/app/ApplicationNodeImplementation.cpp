@@ -158,7 +158,7 @@ namespace viscom {
         });
     }
 
-    bool ApplicationNodeImplementation::KeyboardCallback(int key, int scancode, int action, int mods)
+    bool ApplicationNodeImplementation::KeyboardCallback(int key, int, int action, int)
     {
 
         switch (key)
