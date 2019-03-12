@@ -56,6 +56,10 @@ set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 17)
 target_include_directories(${APP_NAME} PRIVATE src)
 target_link_libraries(${APP_NAME} VISCOMCore)
 
+if(MSVC)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${APP_NAME})
+endif()
+
 set(VISCOM_CONFIG_BASE_DIR "../")
 set(VISCOM_CONFIG_PROGRAM_PROPERTIES "../config/${VISCOM_CONFIG_NAME}/propertiesPrecompute.xml")
 set(VISCOM_CONFIG_SGCT_CONFIG "../data/${VISCOM_CONFIG_NAME}/${VISCOM_CONFIG_NAME}.xml")
