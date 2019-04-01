@@ -156,44 +156,16 @@ namespace viscom {
 #endif // !VISCOM_USE_SGCT
 
         //demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy*(-1.0f), 0.0f)),glm::vec3(static_cast<float>(currentTime)*2.0f));
-        if (!demoCirclesMoved) {
-            circlex_ = glm::linearRand(-1.0f, 1.0f)*(GetConfig().nearPlaneSize_.x);
-            circley_ = glm::linearRand(-1.0f, 1.0f)*(-1.0f);
+
 
 #ifdef VISCOM_USE_SGCT
-            demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f));
-#endif
-#ifndef VISCOM_USE_SGCT
-            demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f));
-#endif // !VISCOM_USE_SGCT
-
-            demoCirclesMoved = true;
-            circleMoveStartTime = static_cast<float>(currentTime);
-#ifdef VISCOM_USE_SGCT
-            demoSyncInfoLocal_.circleData_.x = circlex_;
-            demoSyncInfoLocal_.circleData_.y = circley_;
-#endif // VISCOM_USE_SGCT
-
-            
-        }
-        if (demoCirclesMoved) {
-#ifdef VISCOM_USE_SGCT
-            demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f)), glm::vec3(demoSyncInfoLocal_.circleData_.z));   //glm::vec3((static_cast<float>(currentTime) - circleMoveStartTime)*2.0f));
+        demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f)), glm::vec3(demoSyncInfoLocal_.circleData_.z));   //glm::vec3((static_cast<float>(currentTime) - circleMoveStartTime)*2.0f));
 #endif // VISCOM_USE_SGCT
 
 #ifndef VISCOM_USE_SGCT
-            demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f)), glm::vec3(circler_));
+        demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f)), glm::vec3(circler_));
 #endif // !VISCOM_USE_SGCT
 
-
-            circler_ = (static_cast<float>(currentTime) - circleMoveStartTime)* 2.0f;
-
-#ifdef VISCOM_USE_SGCT
-            demoSyncInfoLocal_.circleData_.z = circler_;
-#endif // !VISCOM_USE_SGCT
-
-            if (circler_ > 8.0f) demoCirclesMoved = false;
-        }
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
         robotModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.3f, 0.0f)), glm::vec3(0.005f));

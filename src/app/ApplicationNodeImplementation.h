@@ -114,8 +114,6 @@ namespace viscom {
 
         double posx, posy, posdx, posdy;
         glm::mat4 demoCirclesModelMatrix_;
-        
-        float circleMoveStartTime = 0.0f;
 
     protected:
 #ifdef VISCOM_USE_SGCT
@@ -127,6 +125,7 @@ namespace viscom {
         /** Holds the mousePoint Model Matrix */
         glm::mat4 mousepointModelMatrix_;
         bool demoCirclesMoved = false;
+        float circleMoveStartTime = 0.0f;
         float circler_ = 0.05f;
         float circlex_ = 0.0f;
         float circley_ = 0.0f;

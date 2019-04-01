@@ -11,6 +11,7 @@
 #include <fstream>
 #include <imgui.h>
 #include <glm\gtc\matrix_transform.hpp>
+#include <glm/gtc/random.hpp>
 
 namespace viscom {
 
@@ -43,6 +44,29 @@ namespace viscom {
         demoSyncInfoLocal_.displayPos0_.x = posdx;
         demoSyncInfoLocal_.displayPos0_.y = posdy;
 #endif
+
+        if (!demoCirclesMoved) {
+            circlex_ = glm::linearRand(-1.0f, 1.0f)*(GetConfig().nearPlaneSize_.x);
+            circley_ = glm::linearRand(-1.0f, 1.0f)*(-1.0f);
+
+            demoCirclesMoved = true;
+            circleMoveStartTime = static_cast<float>(currenttime);
+#ifdef VISCOM_USE_SGCT
+            demoSyncInfoLocal_.circleData_.x = circlex_;
+            demoSyncInfoLocal_.circleData_.y = circley_;
+#endif // VISCOM_USE_SGCT
+        }
+
+        if (demoCirclesMoved) {
+            circler_ = (static_cast<float>(currenttime) - circleMoveStartTime)* 2.0f;
+
+#ifdef VISCOM_USE_SGCT
+            demoSyncInfoLocal_.circleData_.z = circler_;
+#endif // !VISCOM_USE_SGCT
+
+            if (circler_ > 8.0f) demoCirclesMoved = false;
+        }
+
         //tracks the Controller pointing position
         //mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy, 0.0f));
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
