@@ -46,7 +46,7 @@ namespace viscom {
 #endif
 
         if (!demoCirclesMoved) {
-            circlex_ = glm::linearRand(-1.0f, 1.0f)*(GetConfig().nearPlaneSize_.x);
+            circlex_ = glm::linearRand(-1.0f, 1.0f);// *(GetConfig().nearPlaneSize_.x);
             circley_ = glm::linearRand(-1.0f, 1.0f)*(-1.0f);
 
             demoCirclesMoved = true;

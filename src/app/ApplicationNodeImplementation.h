@@ -67,6 +67,8 @@ namespace viscom {
         /** Holds the location of the MVP matrix. */
         GLint demoCirclesMVPLoc_ = -1;
 
+        GLint demoCirclesHitLoc_ = -1;
+
         GLint demoCirclesCenterPos_ = -1;
 
         /** Holds the shader program for drawing the foreground teapot. */
@@ -125,6 +127,7 @@ namespace viscom {
         /** Holds the mousePoint Model Matrix */
         glm::mat4 mousepointModelMatrix_;
         bool demoCirclesMoved = false;
+        int hitCircle = 0;
         float circleMoveStartTime = 0.0f;
         float circler_ = 0.05f;
         float circlex_ = 0.0f;

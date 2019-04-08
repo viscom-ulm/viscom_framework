@@ -1,5 +1,7 @@
 #version 330 core
 
+uniform int hitCircle;
+
 in vec3 fragColor;
 out vec4 color;
 
@@ -7,6 +9,9 @@ out vec4 color;
 void main()
 {
     color = vec4(fragColor, 1.0);
+
+    if(hitCircle == 1) color = vec4(0.0, 1.0, 1.0, 1.0);
+
    //color = vec4(1.0);
    //vec2 pos = mod(gl_FragCoord.xy, vec2(50.0)) - vec2(25.0);
    //float dist_squared = dot(pos,pos);

@@ -36,6 +36,7 @@ namespace viscom {
 
         demoCirclesProgram_ = GetGPUProgramManager().GetResource("demoCircles", std::vector<std::string>{"demoCircles.vert", "demoCircles.frag"});
         demoCirclesMVPLoc_ = demoCirclesProgram_->getUniformLocation("MVP");
+        demoCirclesHitLoc_ = demoCirclesProgram_->getUniformLocation("hitCircle");
 
         teapotProgram_ = GetGPUProgramManager().GetResource("foregroundMesh", std::vector<std::string>{ "foregroundMesh.vert", "foregroundMesh.frag" });
         teapotVPLoc_ = teapotProgram_->getUniformLocation("viewProjectionMatrix");
@@ -159,12 +160,17 @@ namespace viscom {
 
 
 #ifdef VISCOM_USE_SGCT
-        demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f)), glm::vec3(demoSyncInfoLocal_.circleData_.z));   //glm::vec3((static_cast<float>(currentTime) - circleMoveStartTime)*2.0f));
+        demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x*GetConfig().nearPlaneSize_.x, demoSyncInfoLocal_.circleData_.y, 0.0f)), glm::vec3(demoSyncInfoLocal_.circleData_.z));   //glm::vec3((static_cast<float>(currentTime) - circleMoveStartTime)*2.0f));
 #endif // VISCOM_USE_SGCT
 
 #ifndef VISCOM_USE_SGCT
-        demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f)), glm::vec3(circler_));
+        demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(circlex_*GetConfig().nearPlaneSize_.x, circley_, 0.0f)), glm::vec3(circler_));
 #endif // !VISCOM_USE_SGCT
+
+        hitCircle = 0;
+        if (glm::pow(demoSyncInfoLocal_.displayPos0_.x*GetConfig().nearPlaneSize_.x - demoSyncInfoLocal_.circleData_.x*GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(demoSyncInfoLocal_.displayPos0_.y - demoSyncInfoLocal_.circleData_.y, 2.0) < glm::pow(0.05f * demoSyncInfoLocal_.circleData_.z, 2.0)) {
+            hitCircle = 1;
+        }
 
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
@@ -186,6 +192,30 @@ namespace viscom {
             glBindBuffer(GL_ARRAY_BUFFER, vboBackgroundGrid_);
 
             auto MVP = GetCamera()->GetViewPerspectiveMatrix();
+
+
+            auto fw = &GetApplication()->GetFramework();
+            auto engine = fw->GetEngine();
+
+            int x, y, xSize, ySize, xSizeFull, ySizeFull;
+            engine->getCurrentWindowPtr()->getCurrentViewportPixelCoords(x, y, xSize, ySize);
+
+            auto vp = GetViewportScreen(engine->getCurrentWindowPtr()->getId());
+            x = vp.position_.x;
+            y = vp.position_.y;
+            xSizeFull = vp.size_.x;
+            ySizeFull = vp.size_.y;
+
+            float currentScreenPosX = (float)x / xSizeFull;
+            float currentScreenPosY = (float)y / ySizeFull;
+            float currentScreenSizeX = (float)xSize / xSizeFull;
+            float currentScreenSizeY = (float)ySize / ySizeFull;
+            
+            auto screenMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0 / GetConfig().nearPlaneSize_.x, 1.0, 1.0));
+            screenMatrix = glm::scale(screenMatrix, glm::vec3(1.0 / currentScreenSizeX, 1.0 / currentScreenSizeY, 1.0));
+            screenMatrix = glm::translate(screenMatrix, glm::vec3((1.0 - currentScreenSizeX - 1.0 / currentScreenSizeX * currentScreenPosX) * GetConfig().nearPlaneSize_.x, 1.0 - currentScreenSizeY - 1.0 / currentScreenSizeY * currentScreenPosY, 0.0));
+
+
             {
                 glUseProgram(backgroundProgram_->getProgramId());
                 glUniformMatrix4fv(backgroundMVPLoc_, 1, GL_FALSE, glm::value_ptr(MVP));
@@ -202,7 +232,7 @@ namespace viscom {
             }
             
             {
-                auto mousepointMVP = MVP * mousepointModelMatrix_;
+                auto mousepointMVP = screenMatrix * mousepointModelMatrix_;
                 glPointSize(30);
                 glUseProgram(mousepointProgram_->getProgramId());
                 glUniformMatrix4fv(mousepointMVPLoc_, 1, GL_FALSE, glm::value_ptr(mousepointMVP));
@@ -214,11 +244,12 @@ namespace viscom {
             
 
             {
-                auto demoCirclesMVP = MVP * demoCirclesModelMatrix_;
+                auto demoCirclesMVP = screenMatrix * demoCirclesModelMatrix_;
                 glm::vec4 windowSize = glm::vec4(GetConfig().nearPlaneSize_.x,GetConfig().nearPlaneSize_.y, 0.0f, 1.0f);
                 glUseProgram(demoCirclesProgram_->getProgramId());
                 glPointSize(30);
                 glUniformMatrix4fv(demoCirclesMVPLoc_, 1, GL_FALSE, glm::value_ptr(demoCirclesMVP));
+                glUniform1i(demoCirclesHitLoc_, hitCircle);
                 glDrawArrays(GL_LINE_LOOP, 0, numCirclesVertices_);
             }
 
@@ -271,11 +302,11 @@ namespace viscom {
         switch (key)
         {
         case GLFW_KEY_W:
-            if (action == GLFW_REPEAT || action == GLFW_PRESS) camPos_ += glm::vec3(0.0, 0.0, -0.001);
+            if (action == GLFW_REPEAT || action == GLFW_PRESS) camPos_ += glm::vec3(0.0, 0.0, -1.001);
             return true;
 
         case GLFW_KEY_S:
-            if (action == GLFW_REPEAT || action == GLFW_PRESS) camPos_ += glm::vec3(0.0, 0.0, 0.001);
+            if (action == GLFW_REPEAT || action == GLFW_PRESS) camPos_ += glm::vec3(0.0, 0.0, 1.001);
             return true;
 
         case GLFW_KEY_A:
