@@ -206,14 +206,13 @@ namespace viscom {
             xSizeFull = vp.size_.x;
             ySizeFull = vp.size_.y;
 
-            float currentScreenPosX = (float)x / xSizeFull;
-            float currentScreenPosY = (float)y / ySizeFull;
-            float currentScreenSizeX = (float)xSize / xSizeFull;
-            float currentScreenSizeY = (float)ySize / ySizeFull;
+            float screenCenterPosX = (0.5f * xSize + x) / xSizeFull * 2.0f - 1.0f;
+            float screenCenterPosY = (0.5f * ySize + y) / ySizeFull * 2.0f - 1.0f;
+            float screenSizeX = (float)xSize / xSizeFull;
+            float screenSizeY = (float)ySize / ySizeFull;
             
-            auto screenMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0 / GetConfig().nearPlaneSize_.x, 1.0, 1.0));
-            screenMatrix = glm::scale(screenMatrix, glm::vec3(1.0 / currentScreenSizeX, 1.0 / currentScreenSizeY, 1.0));
-            screenMatrix = glm::translate(screenMatrix, glm::vec3((1.0 - currentScreenSizeX - 1.0 / currentScreenSizeX * currentScreenPosX) * GetConfig().nearPlaneSize_.x, 1.0 - currentScreenSizeY - 1.0 / currentScreenSizeY * currentScreenPosY, 0.0));
+            auto screenMatrix = glm::translate(glm::mat4(1.0), glm::vec3(-screenCenterPosX / screenSizeX, -screenCenterPosY / screenSizeY, 0.0));
+            screenMatrix = glm::scale(screenMatrix, glm::vec3(1.0 / screenSizeX / GetConfig().nearPlaneSize_.x, 1.0 / screenSizeY, 1.0));
 
 
             {
