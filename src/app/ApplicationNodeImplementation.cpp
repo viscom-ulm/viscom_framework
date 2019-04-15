@@ -168,9 +168,18 @@ namespace viscom {
 #endif // !VISCOM_USE_SGCT
 
         hitCircle = 0;
+
+#ifdef VISCOM_USE_SGCT
         if (glm::pow(demoSyncInfoLocal_.displayPos0_.x*GetConfig().nearPlaneSize_.x - demoSyncInfoLocal_.circleData_.x*GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(demoSyncInfoLocal_.displayPos0_.y - demoSyncInfoLocal_.circleData_.y, 2.0) < glm::pow(0.05f * demoSyncInfoLocal_.circleData_.z, 2.0)) {
             hitCircle = 1;
         }
+#endif // VISCOM_USE_SGCT
+
+#ifndef VISCOM_USE_SGCT
+        if (glm::pow(displayPos.x*GetConfig().nearPlaneSize_.x - circlex_*GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(displayPos.y - circley_, 2.0) < glm::pow(0.05f * circler_, 2.0)) {
+            hitCircle = 1;
+        }
+#endif // !VISCOM_USE_SGCT
 
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
@@ -193,7 +202,7 @@ namespace viscom {
 
             auto MVP = GetCamera()->GetViewPerspectiveMatrix();
 
-
+#ifdef VISCOM_USE_SGCT
             auto fw = &GetApplication()->GetFramework();
             auto engine = fw->GetEngine();
 
@@ -210,10 +219,14 @@ namespace viscom {
             float screenCenterPosY = (0.5f * ySize + y) / ySizeFull * 2.0f - 1.0f;
             float screenSizeX = (float)xSize / xSizeFull;
             float screenSizeY = (float)ySize / ySizeFull;
-            
+
             auto screenMatrix = glm::translate(glm::mat4(1.0), glm::vec3(-screenCenterPosX / screenSizeX, -screenCenterPosY / screenSizeY, 0.0));
             screenMatrix = glm::scale(screenMatrix, glm::vec3(1.0 / screenSizeX / GetConfig().nearPlaneSize_.x, 1.0 / screenSizeY, 1.0));
+#endif // VISCOM_USE_SGCT
 
+#ifndef VISCOM_USE_SGCT
+            auto screenMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0 / GetConfig().nearPlaneSize_.x, 1.0, 1.0));
+#endif // !VISCOM_USE_SGCT
 
             {
                 glUseProgram(backgroundProgram_->getProgramId());
