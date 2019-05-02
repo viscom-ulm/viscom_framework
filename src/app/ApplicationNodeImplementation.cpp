@@ -202,31 +202,7 @@ namespace viscom {
 
             auto MVP = GetCamera()->GetViewPerspectiveMatrix();
 
-#ifdef VISCOM_USE_SGCT
-            auto fw = &GetApplication()->GetFramework();
-            auto engine = fw->GetEngine();
-
-            int x, y, xSize, ySize, xSizeFull, ySizeFull;
-            engine->getCurrentWindowPtr()->getCurrentViewportPixelCoords(x, y, xSize, ySize);
-
-            auto vp = GetViewportScreen(engine->getCurrentWindowPtr()->getId());
-            x = vp.position_.x;
-            y = vp.position_.y;
-            xSizeFull = vp.size_.x;
-            ySizeFull = vp.size_.y;
-
-            float screenCenterPosX = (0.5f * xSize + x) / xSizeFull * 2.0f - 1.0f;
-            float screenCenterPosY = (0.5f * ySize + y) / ySizeFull * 2.0f - 1.0f;
-            float screenSizeX = (float)xSize / xSizeFull;
-            float screenSizeY = (float)ySize / ySizeFull;
-
-            auto screenMatrix = glm::translate(glm::mat4(1.0), glm::vec3(-screenCenterPosX / screenSizeX, -screenCenterPosY / screenSizeY, 0.0));
-            screenMatrix = glm::scale(screenMatrix, glm::vec3(1.0 / screenSizeX / GetConfig().nearPlaneSize_.x, 1.0 / screenSizeY, 1.0));
-#endif // VISCOM_USE_SGCT
-
-#ifndef VISCOM_USE_SGCT
-            auto screenMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0 / GetConfig().nearPlaneSize_.x, 1.0, 1.0));
-#endif // !VISCOM_USE_SGCT
+            auto screenMatrix = GetCamera()->GetLocalCoordMatrix();
 
             {
                 glUseProgram(backgroundProgram_->getProgramId());
