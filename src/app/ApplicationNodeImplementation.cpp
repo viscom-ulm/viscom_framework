@@ -202,7 +202,7 @@ namespace viscom {
 
             auto MVP = GetCamera()->GetViewPerspectiveMatrix();
 
-            auto screenMatrix = GetCamera()->GetLocalCoordMatrix();
+            auto screenMatrix = GetCamera()->GetLocalCoordMatrix(GetConfig().nearPlaneSize_.x);
 
             {
                 glUseProgram(backgroundProgram_->getProgramId());
