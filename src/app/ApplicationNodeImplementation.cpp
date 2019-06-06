@@ -37,6 +37,7 @@ namespace viscom {
         demoCirclesProgram_ = GetGPUProgramManager().GetResource("demoCircles", std::vector<std::string>{"demoCircles.vert", "demoCircles.frag"});
         demoCirclesMVPLoc_ = demoCirclesProgram_->getUniformLocation("MVP");
         demoCirclesHitLoc_ = demoCirclesProgram_->getUniformLocation("hitCircle");
+        demoCirclesSizeLoc_ = demoCirclesProgram_->getUniformLocation("circleSize");
 
         teapotProgram_ = GetGPUProgramManager().GetResource("foregroundMesh", std::vector<std::string>{ "foregroundMesh.vert", "foregroundMesh.frag" });
         teapotVPLoc_ = teapotProgram_->getUniformLocation("viewProjectionMatrix");
@@ -45,7 +46,7 @@ namespace viscom {
         robotVPLoc_ = robotProgram_->getUniformLocation("viewProjectionMatrix");
 
         std::vector<GridVertex> gridVertices;
-        std::vector<GridVertex> circleVertices;
+        std::vector<SimpleVertex> circleVertices;
 
         auto delta = 0.125f;
         for (auto x = -1.0f; x < 1.0f; x += delta) {
@@ -74,11 +75,8 @@ namespace viscom {
         gridVertices.emplace_back(glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
         gridVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-        float twicePi = 2.0f * 3.14159f;
-        float radius = 0.05f;
-        for (int i = 0; i < 100; i++) {
-            circleVertices.emplace_back(glm::vec3(radius*cos(i * twicePi / 100), radius*sin(i * twicePi / 100), 0.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
-        }
+
+        circleVertices.emplace_back(glm::vec3(0.0f));
         //circleVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
 
         numCirclesVertices_ = static_cast<unsigned int>(circleVertices.size());
@@ -99,14 +97,12 @@ namespace viscom {
 
         glGenBuffers(1, &vboCircles_);
         glBindBuffer(GL_ARRAY_BUFFER, vboCircles_);
-        glBufferData(GL_ARRAY_BUFFER, circleVertices.size() * sizeof(GridVertex), circleVertices.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, circleVertices.size() * sizeof(SimpleVertex), circleVertices.data(), GL_STATIC_DRAW);
 
         glGenVertexArrays(1, &vaoCircles_);
         glBindVertexArray(vaoCircles_);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GridVertex), reinterpret_cast<GLvoid*>(offsetof(GridVertex, position_)));
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(GridVertex), reinterpret_cast<GLvoid*>(offsetof(GridVertex, color_)));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(SimpleVertex), reinterpret_cast<GLvoid*>(offsetof(SimpleVertex, position_)));
         glBindVertexArray(0);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -150,33 +146,33 @@ namespace viscom {
         //displayPos.x = displayPos.x * 2 - 1;
         //displayPos.y = displayPos.y * 2 - 1;
 #ifdef VISCOM_USE_SGCT
-        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)demoSyncInfoLocal_.displayPos0_.x*(GetConfig().nearPlaneSize_.x), (float)demoSyncInfoLocal_.displayPos0_.y, 0.0f));
+        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)demoSyncInfoLocal_.displayPos0_.x, (float)demoSyncInfoLocal_.displayPos0_.y, 0.0f));
 #endif
 #ifndef VISCOM_USE_SGCT
-        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)displayPos.x*(GetConfig().nearPlaneSize_.x), (float)displayPos.y, 0.0f));
+        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)displayPos.x, (float)displayPos.y, 0.0f));
 #endif // !VISCOM_USE_SGCT
 
         //demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy*(-1.0f), 0.0f)),glm::vec3(static_cast<float>(currentTime)*2.0f));
 
 
 #ifdef VISCOM_USE_SGCT
-        demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x*GetConfig().nearPlaneSize_.x, demoSyncInfoLocal_.circleData_.y, 0.0f)), glm::vec3(demoSyncInfoLocal_.circleData_.z));   //glm::vec3((static_cast<float>(currentTime) - circleMoveStartTime)*2.0f));
+        demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f));   //glm::vec3((static_cast<float>(currentTime) - circleMoveStartTime)*2.0f));
 #endif // VISCOM_USE_SGCT
 
 #ifndef VISCOM_USE_SGCT
-        demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(circlex_*GetConfig().nearPlaneSize_.x, circley_, 0.0f)), glm::vec3(circler_));
+        demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f));
 #endif // !VISCOM_USE_SGCT
 
         hitCircle = 0;
 
 #ifdef VISCOM_USE_SGCT
-        if (glm::pow(demoSyncInfoLocal_.displayPos0_.x*GetConfig().nearPlaneSize_.x - demoSyncInfoLocal_.circleData_.x*GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(demoSyncInfoLocal_.displayPos0_.y - demoSyncInfoLocal_.circleData_.y, 2.0) < glm::pow(0.05f * demoSyncInfoLocal_.circleData_.z, 2.0)) {
+        if (glm::pow(demoSyncInfoLocal_.displayPos0_.x*GetConfig().nearPlaneSize_.x - demoSyncInfoLocal_.circleData_.x*GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(demoSyncInfoLocal_.displayPos0_.y - demoSyncInfoLocal_.circleData_.y, 2.0) < glm::pow(demoSyncInfoLocal_.circleData_.z, 2.0)) {
             hitCircle = 1;
         }
 #endif // VISCOM_USE_SGCT
 
 #ifndef VISCOM_USE_SGCT
-        if (glm::pow(displayPos.x*GetConfig().nearPlaneSize_.x - circlex_*GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(displayPos.y - circley_, 2.0) < glm::pow(0.05f * circler_, 2.0)) {
+        if (glm::pow(displayPos.x*GetConfig().nearPlaneSize_.x - circlex_*GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(displayPos.y - circley_, 2.0) < glm::pow(circler_, 2.0)) {
             hitCircle = 1;
         }
 #endif // !VISCOM_USE_SGCT
@@ -201,8 +197,24 @@ namespace viscom {
             glBindBuffer(GL_ARRAY_BUFFER, vboBackgroundGrid_);
 
             auto MVP = GetCamera()->GetViewPerspectiveMatrix();
+            auto screenMatrix = GetCamera()->GetLocalCoordMatrix();
 
-            auto screenMatrix = GetCamera()->GetLocalCoordMatrix(GetConfig().nearPlaneSize_.x);
+#ifdef VISCOM_USE_SGCT
+            auto fw = &GetApplication()->GetFramework();
+            auto engine = fw->GetEngine();
+
+            int x, y, xSize, ySize;
+            engine->getCurrentWindowPtr()->getCurrentViewportPixelCoords(x, y, xSize, ySize);
+            int localScreenHeight = ySize;
+            int circleSize = int(demoSyncInfoLocal_.circleData_.z * localScreenHeight);
+#endif // VISCOM_USE_SGCT
+
+#ifndef VISCOM_USE_SGCT
+            int localScreenHeight = int(GetConfig().virtualScreenSize_.y);
+            int circleSize = int(circler_ * localScreenHeight);
+#endif // !VISCOM_USE_SGCT
+
+            
 
             {
                 glUseProgram(backgroundProgram_->getProgramId());
@@ -235,10 +247,11 @@ namespace viscom {
                 auto demoCirclesMVP = screenMatrix * demoCirclesModelMatrix_;
                 glm::vec4 windowSize = glm::vec4(GetConfig().nearPlaneSize_.x,GetConfig().nearPlaneSize_.y, 0.0f, 1.0f);
                 glUseProgram(demoCirclesProgram_->getProgramId());
-                glPointSize(30);
+                glPointSize(GLfloat(circleSize));
                 glUniformMatrix4fv(demoCirclesMVPLoc_, 1, GL_FALSE, glm::value_ptr(demoCirclesMVP));
                 glUniform1i(demoCirclesHitLoc_, hitCircle);
-                glDrawArrays(GL_LINE_LOOP, 0, numCirclesVertices_);
+                glUniform1i(demoCirclesSizeLoc_, circleSize);
+                glDrawArrays(GL_POINTS, 0, numCirclesVertices_);
             }
 
             glBindVertexArray(vaoBackgroundGrid_);

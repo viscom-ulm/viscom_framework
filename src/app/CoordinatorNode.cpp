@@ -58,13 +58,13 @@ namespace viscom {
         }
 
         if (demoCirclesMoved) {
-            circler_ = (static_cast<float>(currenttime) - circleMoveStartTime)* 2.0f;
+            circler_ = (static_cast<float>(currenttime) - circleMoveStartTime) * 0.1f;
 
 #ifdef VISCOM_USE_SGCT
             demoSyncInfoLocal_.circleData_.z = circler_;
 #endif // !VISCOM_USE_SGCT
 
-            if (circler_ > 8.0f) demoCirclesMoved = false;
+            if (circler_ > 0.5f) demoCirclesMoved = false;
         }
 
         //tracks the Controller pointing position
