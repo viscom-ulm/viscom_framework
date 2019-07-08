@@ -65,6 +65,16 @@ namespace viscom {
 #endif // !VISCOM_USE_SGCT
 
             if (circler_ > 0.5f) demoCirclesMoved = false;
+
+
+            //TODO: Input of the trigger not working...
+            glm::vec2 axisValues;
+            viscom::ovr::ButtonState triggerButtonState;
+            GetControllerButtonState(controllerindex, 33, axisValues, triggerButtonState);
+
+            if (triggerButtonState == ovr::ButtonState::PRESSED && glm::pow(posdx*GetConfig().nearPlaneSize_.x - circlex_ * GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(posdy - circley_, 2.0) < glm::pow(circler_, 2.0)) {
+                demoCirclesMoved = false;
+            }
         }
 
         //tracks the Controller pointing position
@@ -113,6 +123,17 @@ namespace viscom {
                             ImGui::Text("Controller %i: position x: %.2f, y: %.2f, z: %.2f", d.deviceId_, position[0], position[1], position[2]);
                             ImGui::Text("              zVector x: %.2f, y: %.2f, z: %.2f", zvector[0], zvector[1], zvector[2]);
                             ImGui::Text("              rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
+
+                            ImGui::Text("              hand: %i", d.deviceRole_);
+
+                            // Optionally display all the button states
+                            for (int buttonId = 0; buttonId < 0; buttonId++) {
+                                glm::vec2 axis;
+                                ovr::ButtonState buttonState;
+                                GetControllerButtonState(d.deviceId_, buttonId, axis, buttonState);
+                                ImGui::Text("              Button %i state: %i", buttonId, buttonState);
+                            }
+
                         }
                         if (d.deviceClass_ == ovr::TrackedDeviceClass::GENERIC_TRACKER) trackerid = d.deviceId_;
                     }

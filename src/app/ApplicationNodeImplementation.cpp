@@ -25,6 +25,13 @@ namespace viscom {
     {
         LOG(INFO) << "InitOpenGL called in AppNImpl";
 
+
+        InitialiseVR();
+        if (!InitialiseDisplayVR()) {
+            CalibrateVR(ovr::CalibrateMethod::CALIBRATE_BY_POINTING);
+        }
+
+
         backgroundProgram_ = GetGPUProgramManager().GetResource("backgroundGrid", std::vector<std::string>{ "backgroundGrid.vert", "backgroundGrid.frag" });
         backgroundMVPLoc_ = backgroundProgram_->getUniformLocation("MVP");
 
