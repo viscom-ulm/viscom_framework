@@ -67,7 +67,6 @@ namespace viscom {
             if (circler_ > 0.5f) demoCirclesMoved = false;
 
 
-            //TODO: Input of the trigger not working...
             glm::vec2 axisValues;
             viscom::ovr::ButtonState triggerButtonState;
             GetControllerButtonState(controllerindex, 33, axisValues, triggerButtonState);
@@ -126,12 +125,13 @@ namespace viscom {
 
                             ImGui::Text("              hand: %i", d.deviceRole_);
 
+
                             // Optionally display all the button states
-                            for (int buttonId = 0; buttonId < 0; buttonId++) {
+                            for (int buttonId = 0; buttonId < 64; buttonId++) {
                                 glm::vec2 axis;
                                 ovr::ButtonState buttonState;
                                 GetControllerButtonState(d.deviceId_, buttonId, axis, buttonState);
-                                ImGui::Text("              Button %i state: %i", buttonId, buttonState);
+                                ImGui::Text("              Button %i state: %i (%.2f, %.2f)", buttonId, buttonState, axis.x, axis.y);
                             }
 
                         }
@@ -206,7 +206,7 @@ namespace viscom {
         ApplicationNodeImplementation::Draw2D(fbo);
     }
 
-    bool CoordinatorNode::ControllerButtonPressedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid, const glm::vec2& axisvalues) {
+    /*bool CoordinatorNode::ControllerButtonPressedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid, const glm::vec2& axisvalues) {
         if (ApplicationNodeBase::ControllerButtonPressedCallback(trackedDeviceId, buttonid, axisvalues)) return true;
         glm::vec2 displayPos = GetDisplayPointerPosition(trackedDeviceId);
 #ifdef VISCOM_USE_SGCT
@@ -239,6 +239,22 @@ namespace viscom {
 #endif // !VISCOM_USE_SGCT
 
             return false;
-        }
+        }*/
+
+    bool CoordinatorNode::ControllerButtonPressedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) {
+        return true;
+    }
+
+    bool CoordinatorNode::ControllerButtonTouchedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) {
+        return true;
+    }
+
+    bool CoordinatorNode::ControllerButtonPressReleasedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) {
+        return true;
+    }
+
+    bool CoordinatorNode::ControllerButtonTouchReleasedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) {
+        return true;
+    }
 
 }
