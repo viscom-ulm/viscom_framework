@@ -45,6 +45,7 @@ namespace viscom {
         demoCirclesMVPLoc_ = demoCirclesProgram_->getUniformLocation("MVP");
         demoCirclesHitLoc_ = demoCirclesProgram_->getUniformLocation("hitCircle");
         demoCirclesSizeLoc_ = demoCirclesProgram_->getUniformLocation("circleSize");
+        demoCirclesRatioLoc_ = demoCirclesProgram_->getUniformLocation("circleRatio");
 
         teapotProgram_ = GetGPUProgramManager().GetResource("foregroundMesh", std::vector<std::string>{ "foregroundMesh.vert", "foregroundMesh.frag" });
         teapotVPLoc_ = teapotProgram_->getUniformLocation("viewProjectionMatrix");
@@ -205,6 +206,8 @@ namespace viscom {
 
             auto MVP = GetCamera()->GetViewPerspectiveMatrix();
             auto screenMatrix = GetCamera()->GetLocalCoordMatrix();
+            auto globalScreenSize = GetCamera()->GetGlobalScreenSize();
+            float screenSizeRatio = 1.0f * globalScreenSize.x / globalScreenSize.y / GetConfig().nearPlaneSize_.x;
 
 #ifdef VISCOM_USE_SGCT
             auto fw = &GetApplication()->GetFramework();
@@ -213,12 +216,12 @@ namespace viscom {
             int x, y, xSize, ySize;
             engine->getCurrentWindowPtr()->getCurrentViewportPixelCoords(x, y, xSize, ySize);
             int localScreenHeight = ySize;
-            int circleSize = int(demoSyncInfoLocal_.circleData_.z * localScreenHeight);
+            int circleSize = int(demoSyncInfoLocal_.circleData_.z * globalScreenSize.y);
 #endif // VISCOM_USE_SGCT
 
 #ifndef VISCOM_USE_SGCT
             int localScreenHeight = int(GetConfig().virtualScreenSize_.y);
-            int circleSize = int(circler_ * localScreenHeight);
+            int circleSize = int(circler_ * globalScreenSize.y);
 #endif // !VISCOM_USE_SGCT
 
             
@@ -240,7 +243,7 @@ namespace viscom {
             
             {
                 auto mousepointMVP = screenMatrix * mousepointModelMatrix_;
-                glPointSize(30);
+                glPointSize(0.03f * globalScreenSize.y);
                 glUseProgram(mousepointProgram_->getProgramId());
                 glUniformMatrix4fv(mousepointMVPLoc_, 1, GL_FALSE, glm::value_ptr(mousepointMVP));
                 glDrawArrays(GL_POINTS, numBackgroundVertices_+3, 1);
@@ -258,6 +261,7 @@ namespace viscom {
                 glUniformMatrix4fv(demoCirclesMVPLoc_, 1, GL_FALSE, glm::value_ptr(demoCirclesMVP));
                 glUniform1i(demoCirclesHitLoc_, hitCircle);
                 glUniform1i(demoCirclesSizeLoc_, circleSize);
+                glUniform1f(demoCirclesRatioLoc_, screenSizeRatio);
                 glDrawArrays(GL_POINTS, 0, numCirclesVertices_);
             }
 

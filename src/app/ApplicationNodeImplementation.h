@@ -69,6 +69,7 @@ namespace viscom {
 
         GLint demoCirclesHitLoc_ = -1;
         GLint demoCirclesSizeLoc_ = -1;
+        GLint demoCirclesRatioLoc_ = -1;
 
         GLint demoCirclesCenterPos_ = -1;
 

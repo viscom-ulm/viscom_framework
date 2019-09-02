@@ -47,7 +47,7 @@ namespace viscom {
 
         if (!demoCirclesMoved) {
             circlex_ = glm::linearRand(-1.0f, 1.0f);// *(GetConfig().nearPlaneSize_.x);
-            circley_ = glm::linearRand(-1.0f, 1.0f)*(-1.0f);
+            circley_ = glm::linearRand(-1.0f, 1.0f);
 
             demoCirclesMoved = true;
             circleMoveStartTime = static_cast<float>(currenttime);
