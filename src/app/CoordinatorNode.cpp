@@ -40,7 +40,6 @@ namespace viscom {
         demoSyncInfoLocal_.displayPos0_.x = displayPos[0] * 2 - 1;
         demoSyncInfoLocal_.displayPos0_.y = displayPos[1] * 2 - 1;
 
-
         demoSyncInfoLocal_.circleData_.z = (static_cast<float>(currenttime) - circleMoveStartTime_) * 0.1f;
 
         glm::vec2 mouseCircleDistance = glm::vec2(GetConfig().nearPlaneSize_.x*(demoSyncInfoLocal_.displayPos0_.x - demoSyncInfoLocal_.circleData_.x), demoSyncInfoLocal_.displayPos0_.y - demoSyncInfoLocal_.circleData_.y);
