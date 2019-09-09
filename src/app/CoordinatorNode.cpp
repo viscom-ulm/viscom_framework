@@ -36,48 +36,35 @@ namespace viscom {
                 controllerindex = d.deviceId_;
             }
         }
-        displayPos = GetDisplayPointerPosition(controllerindex);
-        posdx = displayPos[0] * 2 - 1;
-        posdy = displayPos[1] * 2 - 1;
-        
-#ifdef VISCOM_USE_SGCT
-        demoSyncInfoLocal_.displayPos0_.x = posdx;
-        demoSyncInfoLocal_.displayPos0_.y = posdy;
-#endif
+        glm::vec2 displayPos = GetDisplayPointerPosition(controllerindex);
+        demoSyncInfoLocal_.displayPos0_.x = displayPos[0] * 2 - 1;
+        demoSyncInfoLocal_.displayPos0_.y = displayPos[1] * 2 - 1;
 
-        if (!demoCirclesMoved) {
-            circlex_ = glm::linearRand(-1.0f, 1.0f);// *(GetConfig().nearPlaneSize_.x);
-            circley_ = glm::linearRand(-1.0f, 1.0f)*(-1.0f);
 
-            demoCirclesMoved = true;
-            circleMoveStartTime = static_cast<float>(currenttime);
-#ifdef VISCOM_USE_SGCT
-            demoSyncInfoLocal_.circleData_.x = circlex_;
-            demoSyncInfoLocal_.circleData_.y = circley_;
-#endif // VISCOM_USE_SGCT
+        demoSyncInfoLocal_.circleData_.z = (static_cast<float>(currenttime) - circleMoveStartTime_) * 0.1f;
+
+        glm::vec2 mouseCircleDistance = glm::vec2(GetConfig().nearPlaneSize_.x*(demoSyncInfoLocal_.displayPos0_.x - demoSyncInfoLocal_.circleData_.x), demoSyncInfoLocal_.displayPos0_.y - demoSyncInfoLocal_.circleData_.y);
+
+        if (mouseCircleDistance.x*mouseCircleDistance.x + mouseCircleDistance.y*mouseCircleDistance.y < demoSyncInfoLocal_.circleData_.z*demoSyncInfoLocal_.circleData_.z) {
+            demoSyncInfoLocal_.circleHit_ = true;
+        }
+        else {
+            demoSyncInfoLocal_.circleHit_ = false;
         }
 
-        if (demoCirclesMoved) {
-            circler_ = (static_cast<float>(currenttime) - circleMoveStartTime) * 0.1f;
+        glm::vec2 axisValues;
+        viscom::ovr::ButtonState triggerButtonState;
+        GetControllerButtonState(controllerindex, 33, axisValues, triggerButtonState);
 
-#ifdef VISCOM_USE_SGCT
-            demoSyncInfoLocal_.circleData_.z = circler_;
-#endif // !VISCOM_USE_SGCT
+        if (triggerButtonState == ovr::ButtonState::PRESSED && demoSyncInfoLocal_.circleHit_ || demoSyncInfoLocal_.circleData_.z > 0.5f) {
+            demoSyncInfoLocal_.circleData_.x = glm::linearRand(-1.0f, 1.0f);
+            demoSyncInfoLocal_.circleData_.y = glm::linearRand(-1.0f, 1.0f);
 
-            if (circler_ > 0.5f) demoCirclesMoved = false;
-
-
-            glm::vec2 axisValues;
-            viscom::ovr::ButtonState triggerButtonState;
-            GetControllerButtonState(controllerindex, 33, axisValues, triggerButtonState);
-
-            if (triggerButtonState == ovr::ButtonState::PRESSED && glm::pow(posdx*GetConfig().nearPlaneSize_.x - circlex_ * GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(posdy - circley_, 2.0) < glm::pow(circler_, 2.0)) {
-                demoCirclesMoved = false;
-            }
+            circleMoveStartTime_ = static_cast<float>(currenttime);
+            demoSyncInfoLocal_.circleData_.z = 0.0f;
+            demoSyncInfoLocal_.circleHit_ = false;
         }
 
-        //tracks the Controller pointing position
-        //mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy, 0.0f));
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
     }
 
@@ -195,11 +182,8 @@ namespace viscom {
                 if (!initVr_) {
                     ImGui::Text("Open VR not initialized! Please start SteamVR.");
                 }
-                if (ImGui::Button("Reset Demo Circle")) {
-                    demoCirclesMoved = false;
-                }
-                ImGui::Text("Circle Pos x: %f, y: %f, radius: %f", circlex_, circley_, circler_);
-                ImGui::Text("Demo Score: %i", demoPoints);
+                ImGui::Text("Circle Pos x: %f, y: %f, radius: %f", demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, demoSyncInfoLocal_.circleData_.z);
+                //ImGui::Text("Demo Score: %i", demoPoints);
             }
             ImGui::End();
         });
@@ -240,21 +224,4 @@ namespace viscom {
 
             return false;
         }*/
-
-    bool CoordinatorNode::ControllerButtonPressedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) {
-        return true;
-    }
-
-    bool CoordinatorNode::ControllerButtonTouchedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) {
-        return true;
-    }
-
-    bool CoordinatorNode::ControllerButtonPressReleasedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) {
-        return true;
-    }
-
-    bool CoordinatorNode::ControllerButtonTouchReleasedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) {
-        return true;
-    }
-
 }

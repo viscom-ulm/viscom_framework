@@ -17,6 +17,7 @@ namespace viscom {
     class AnimationState;
 
     struct demoSyncedInfo {
+        bool circleHit_;
         glm::vec3 circleData_;
         glm::vec2 displayPos0_;
     };
@@ -43,7 +44,6 @@ namespace viscom {
 #endif
 
         virtual bool KeyboardCallback(int key, int scancode, int action, int mods) override;
-        virtual bool MousePosCallback(double x, double y) override;
 
 
     private:
@@ -69,6 +69,7 @@ namespace viscom {
 
         GLint demoCirclesHitLoc_ = -1;
         GLint demoCirclesSizeLoc_ = -1;
+        GLint demoCirclesRatioLoc_ = -1;
 
         GLint demoCirclesCenterPos_ = -1;
 
@@ -115,26 +116,20 @@ namespace viscom {
         glm::vec3 camPos_ = glm::vec3{ 0.0f };
         glm::vec3 camRot_ = glm::vec3{ 0.0f };
 
-        double posx, posy, posdx, posdy;
+        /** Holds the mousePoint Model Matrix. */
+        glm::mat4 mousepointModelMatrix_;
+        /** Holds the circle model matrix. */
         glm::mat4 demoCirclesModelMatrix_;
 
+        std::vector<ovr::DeviceInfo> connectedDevices_;
+
     protected:
-#ifdef VISCOM_USE_SGCT
+        float circleMoveStartTime_ = -999999.0f;
         /** Holds the synchronized object (local). */
         demoSyncedInfo demoSyncInfoLocal_;
+#ifdef VISCOM_USE_SGCT
         /** Holds the synchronized object (synced). */
         sgct::SharedObject<demoSyncedInfo> demoSyncInfoSynced_;
 #endif
-        /** Holds the mousePoint Model Matrix */
-        glm::mat4 mousepointModelMatrix_;
-        bool demoCirclesMoved = false;
-        int hitCircle = 0;
-        float circleMoveStartTime = 0.0f;
-        float circler_ = 0.05f;
-        float circlex_ = 0.0f;
-        float circley_ = 0.0f;
-        int demoPoints = 0;
-        std::vector<ovr::DeviceInfo> connectedDevices_;
-        glm::vec2 displayPos;
     };
 }

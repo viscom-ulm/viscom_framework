@@ -45,6 +45,7 @@ namespace viscom {
         demoCirclesMVPLoc_ = demoCirclesProgram_->getUniformLocation("MVP");
         demoCirclesHitLoc_ = demoCirclesProgram_->getUniformLocation("hitCircle");
         demoCirclesSizeLoc_ = demoCirclesProgram_->getUniformLocation("circleSize");
+        demoCirclesRatioLoc_ = demoCirclesProgram_->getUniformLocation("circleRatio");
 
         teapotProgram_ = GetGPUProgramManager().GetResource("foregroundMesh", std::vector<std::string>{ "foregroundMesh.vert", "foregroundMesh.frag" });
         teapotVPLoc_ = teapotProgram_->getUniformLocation("viewProjectionMatrix");
@@ -84,8 +85,6 @@ namespace viscom {
         gridVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
         circleVertices.emplace_back(glm::vec3(0.0f));
-        //circleVertices.emplace_back(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
-
         numCirclesVertices_ = static_cast<unsigned int>(circleVertices.size());
 
         glGenBuffers(1, &vboBackgroundGrid_);
@@ -143,46 +142,8 @@ namespace viscom {
         glm::quat rollQuat = glm::angleAxis(camRot_.z, glm::vec3(0.0f, 0.0f, 1.0f));
         GetCamera()->SetOrientation(yawQuat * pitchQuat * rollQuat);
 
-        //Tracks the mouse
-        //connectedDevices_= GetConnectedDevices();
-        //size_t controllerindex = 0;
-        //for (DeviceInfo d : connectedDevices_) {
-        //    if (d.deviceClass == TrackedDeviceClass::CONTROLLER && d.deviceRole == TrackedDeviceRole::CONTROLLER_LEFT_HAND) controllerindex = d.deviceId;
-        //}
-        //displayPos = GetDisplayPointerPosition(controllerindex);
-        //displayPos.x = displayPos.x * 2 - 1;
-        //displayPos.y = displayPos.y * 2 - 1;
-#ifdef VISCOM_USE_SGCT
-        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)demoSyncInfoLocal_.displayPos0_.x, (float)demoSyncInfoLocal_.displayPos0_.y, 0.0f));
-#endif
-#ifndef VISCOM_USE_SGCT
-        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3((float)displayPos.x, (float)displayPos.y, 0.0f));
-#endif // !VISCOM_USE_SGCT
-
-        //demoCirclesModelMatrix_ = glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3((float)posdx*(GetConfig().nearPlaneSize_.x), (float)posdy*(-1.0f), 0.0f)),glm::vec3(static_cast<float>(currentTime)*2.0f));
-
-
-#ifdef VISCOM_USE_SGCT
-        demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f));   //glm::vec3((static_cast<float>(currentTime) - circleMoveStartTime)*2.0f));
-#endif // VISCOM_USE_SGCT
-
-#ifndef VISCOM_USE_SGCT
-        demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(circlex_, circley_, 0.0f));
-#endif // !VISCOM_USE_SGCT
-
-        hitCircle = 0;
-
-#ifdef VISCOM_USE_SGCT
-        if (glm::pow(demoSyncInfoLocal_.displayPos0_.x*GetConfig().nearPlaneSize_.x - demoSyncInfoLocal_.circleData_.x*GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(demoSyncInfoLocal_.displayPos0_.y - demoSyncInfoLocal_.circleData_.y, 2.0) < glm::pow(demoSyncInfoLocal_.circleData_.z, 2.0)) {
-            hitCircle = 1;
-        }
-#endif // VISCOM_USE_SGCT
-
-#ifndef VISCOM_USE_SGCT
-        if (glm::pow(displayPos.x*GetConfig().nearPlaneSize_.x - circlex_*GetConfig().nearPlaneSize_.x, 2.0) + glm::pow(displayPos.y - circley_, 2.0) < glm::pow(circler_, 2.0)) {
-            hitCircle = 1;
-        }
-#endif // !VISCOM_USE_SGCT
+        mousepointModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.displayPos0_.x, demoSyncInfoLocal_.displayPos0_.y, 0.0f));
+        demoCirclesModelMatrix_ = glm::translate(glm::mat4(1.0f), glm::vec3(demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, 0.0f));
 
         triangleModelMatrix_ = glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
         teapotModelMatrix_ = glm::scale(glm::rotate(glm::translate(glm::mat4(0.01f), glm::vec3(-3.0f, 0.0f, -5.0f)), static_cast<float>(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
@@ -206,22 +167,10 @@ namespace viscom {
             auto MVP = GetCamera()->GetViewPerspectiveMatrix();
             auto screenMatrix = GetCamera()->GetLocalCoordMatrix();
 
-#ifdef VISCOM_USE_SGCT
-            auto fw = &GetApplication()->GetFramework();
-            auto engine = fw->GetEngine();
+            auto globalScreenSize = GetCamera()->GetGlobalScreenSize();
+            float screenSizeRatio = 1.0f * globalScreenSize.x / globalScreenSize.y / GetConfig().nearPlaneSize_.x;
 
-            int x, y, xSize, ySize;
-            engine->getCurrentWindowPtr()->getCurrentViewportPixelCoords(x, y, xSize, ySize);
-            int localScreenHeight = ySize;
-            int circleSize = int(demoSyncInfoLocal_.circleData_.z * localScreenHeight);
-#endif // VISCOM_USE_SGCT
-
-#ifndef VISCOM_USE_SGCT
-            int localScreenHeight = int(GetConfig().virtualScreenSize_.y);
-            int circleSize = int(circler_ * localScreenHeight);
-#endif // !VISCOM_USE_SGCT
-
-            
+            float circleSize = demoSyncInfoLocal_.circleData_.z * globalScreenSize.y;
 
             {
                 glUseProgram(backgroundProgram_->getProgramId());
@@ -240,7 +189,7 @@ namespace viscom {
             
             {
                 auto mousepointMVP = screenMatrix * mousepointModelMatrix_;
-                glPointSize(30);
+                glPointSize(0.03f * globalScreenSize.y);
                 glUseProgram(mousepointProgram_->getProgramId());
                 glUniformMatrix4fv(mousepointMVPLoc_, 1, GL_FALSE, glm::value_ptr(mousepointMVP));
                 glDrawArrays(GL_POINTS, numBackgroundVertices_+3, 1);
@@ -254,10 +203,11 @@ namespace viscom {
                 auto demoCirclesMVP = screenMatrix * demoCirclesModelMatrix_;
                 glm::vec4 windowSize = glm::vec4(GetConfig().nearPlaneSize_.x,GetConfig().nearPlaneSize_.y, 0.0f, 1.0f);
                 glUseProgram(demoCirclesProgram_->getProgramId());
-                glPointSize(GLfloat(circleSize));
+                glPointSize(circleSize);
                 glUniformMatrix4fv(demoCirclesMVPLoc_, 1, GL_FALSE, glm::value_ptr(demoCirclesMVP));
-                glUniform1i(demoCirclesHitLoc_, hitCircle);
-                glUniform1i(demoCirclesSizeLoc_, circleSize);
+                glUniform1i(demoCirclesHitLoc_, demoSyncInfoLocal_.circleHit_);
+                glUniform1f(demoCirclesSizeLoc_, circleSize);
+                glUniform1f(demoCirclesRatioLoc_, screenSizeRatio);
                 glDrawArrays(GL_POINTS, 0, numCirclesVertices_);
             }
 
@@ -359,19 +309,4 @@ namespace viscom {
         }
         return false;
     }
-    /** Gets the display position of the mouse position callback and saves them into internal values.
-    '   @return bool if procedure was done succesfull.
-    */
-    bool ApplicationNodeImplementation::MousePosCallback(double x, double y) {
-
-        if (posx != x || posy != y) {
-            posx = x;
-            posy = y;
-            posdx = posx * 2 - 1;
-            posdy = posy * 2 - 1;
-            return true;
-        }
-        return false;
-    }
-
 }

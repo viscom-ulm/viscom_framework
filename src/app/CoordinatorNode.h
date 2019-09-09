@@ -28,11 +28,6 @@ namespace viscom {
 
         bool bAcquireTrackingDataByWaitingForVREvents = false;
 
-        bool ControllerButtonPressedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) override;
-        bool ControllerButtonTouchedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) override;
-        bool ControllerButtonPressReleasedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) override;
-        bool ControllerButtonTouchReleasedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) override;
-
     private:
 
         float posdx = 0.0f;
