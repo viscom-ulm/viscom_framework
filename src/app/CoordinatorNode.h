@@ -23,23 +23,14 @@ namespace viscom {
         void UpdateFrame(double currenttime, double) override;
 #ifdef VISCOM_USE_SGCT
         void PreSync() override;
-        void UpdateSyncedInfo() override;
 #endif // VISCOM_USE_SGCT
 
         bool bAcquireTrackingDataByWaitingForVREvents = false;
 
-        bool ControllerButtonPressedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) override;
-        bool ControllerButtonTouchedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) override;
-        bool ControllerButtonPressReleasedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) override;
-        bool ControllerButtonTouchReleasedCallback(std::uint32_t trackedDeviceId, std::size_t buttonid) override;
-
     private:
 
-        float posdx = 0.0f;
-        float posdy = 0.0f;
         bool useLeftHandController = true;
         bool initVr_ = false;
         std::vector<ovr::DeviceInfo> connectedDevices_ = std::vector<ovr::DeviceInfo>();
-        glm::vec2 displayPos = glm::vec2(0.0f, 0.0f);
     };
 }
