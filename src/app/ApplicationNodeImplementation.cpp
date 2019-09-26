@@ -239,11 +239,6 @@ namespace viscom {
         demoSyncInfoLocal_ = demoSyncInfoSynced_.getVal();
     }
 
-     void ApplicationNodeImplementation::EncodeData()
-     {
-        sgct::SharedData::instance()->writeObj(&demoSyncInfoSynced_);
-     }
-
      void ApplicationNodeImplementation::DecodeData()
      {
         sgct::SharedData::instance()->readObj(&demoSyncInfoSynced_);

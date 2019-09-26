@@ -23,6 +23,7 @@ namespace viscom {
         void UpdateFrame(double currenttime, double) override;
 #ifdef VISCOM_USE_SGCT
         void PreSync() override;
+        void EncodeData() override;
 #endif // VISCOM_USE_SGCT
 
         bool bAcquireTrackingDataByWaitingForVREvents = false;

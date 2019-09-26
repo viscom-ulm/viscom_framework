@@ -38,7 +38,6 @@ namespace viscom {
 
 #ifdef VISCOM_USE_SGCT
         virtual void UpdateSyncedInfo() override;
-        void EncodeData() override;
         void DecodeData() override;
 #endif
 
