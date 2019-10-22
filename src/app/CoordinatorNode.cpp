@@ -8,10 +8,11 @@
 
 #include "CoordinatorNode.h"
 #include "core/open_gl.h"
-#include <fstream>
 #include <imgui.h>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm/gtc/random.hpp>
+#include <fstream>
+#include <string>
 
 namespace viscom {
 
@@ -20,6 +21,32 @@ namespace viscom {
     {
         initVr_ = InitialiseVR();
         InitialiseDisplayVR();
+
+        // Read Color Correction File
+        std::ifstream correctionFile;
+        correctionFile.open("colorCorrection.txt");
+
+        std::string line;
+        if (std::getline(correctionFile, line))
+        {
+            syncInfoLocal_.brightness_ = float(std::atof(line.c_str()));
+        }
+
+        for (int i = 0; i < 12; i++) {
+            
+            if (std::getline(correctionFile, line))
+            {
+                float r = float(std::atof(line.substr(0, line.find(' ')).c_str()));
+                line = line.substr(line.find(' ') + 1, line.length());
+                float g = float(std::atof(line.substr(0, line.find(' ')).c_str()));
+                line = line.substr(line.find(' ') + 1, line.length());
+                float b = float(std::atof(line.c_str()));
+
+                syncInfoLocal_.color_[i] = glm::vec3(r, g, b);
+            }
+        }
+
+        correctionFile.close();
     }
 
     CoordinatorNode::~CoordinatorNode() = default;
@@ -35,43 +62,6 @@ namespace viscom {
                 controllerindex = d.deviceId_;
             }
         }
-        glm::vec2 displayPos = GetDisplayPointerPosition(controllerindex);
-        demoSyncInfoLocal_.displayPos0_.x = displayPos[0] * 2 - 1;
-        demoSyncInfoLocal_.displayPos0_.y = displayPos[1] * 2 - 1;
-
-
-        demoSyncInfoLocal_.circleData_.z = (static_cast<float>(currenttime) - circleMoveStartTime_) * 0.1f;
-
-        glm::vec2 mouseCircleDistance = glm::vec2(GetConfig().nearPlaneSize_.x*(demoSyncInfoLocal_.displayPos0_.x - demoSyncInfoLocal_.circleData_.x), demoSyncInfoLocal_.displayPos0_.y - demoSyncInfoLocal_.circleData_.y);
-
-        if (mouseCircleDistance.x*mouseCircleDistance.x + mouseCircleDistance.y*mouseCircleDistance.y < demoSyncInfoLocal_.circleData_.z*demoSyncInfoLocal_.circleData_.z) {
-            demoSyncInfoLocal_.circleHit_ = true;
-        }
-        else {
-            demoSyncInfoLocal_.circleHit_ = false;
-        }
-
-        float circleMaxSize = 0.5f; // Circles can't get larger than 2047 pixels with glPoints. Higher values might lead to displaying a wrong size on some screens...
-
-        glm::vec2 axisValues;
-        viscom::ovr::ButtonState triggerButtonState;
-        GetControllerButtonState(controllerindex, 33, axisValues, triggerButtonState);
-
-        if (axisValues.x == 1.0 && demoSyncInfoLocal_.circleHit_ || demoSyncInfoLocal_.circleData_.z > circleMaxSize) {
-            demoSyncInfoLocal_.circleData_.x = glm::linearRand(-1.0f, 1.0f);
-            demoSyncInfoLocal_.circleData_.y = glm::linearRand(-1.0f, 1.0f);
-
-            circleMoveStartTime_ = static_cast<float>(currenttime);
-            demoSyncInfoLocal_.circleData_.z = 0.0f;
-            demoSyncInfoLocal_.circleHit_ = false;
-        }
-
-
-        GetCamera()->SetPosition(camPos_);
-        glm::quat pitchQuat = glm::angleAxis(camRot_.x, glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::quat yawQuat = glm::angleAxis(camRot_.y, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::quat rollQuat = glm::angleAxis(camRot_.z, glm::vec3(0.0f, 0.0f, 1.0f));
-        GetCamera()->SetOrientation(yawQuat * pitchQuat * rollQuat);
 
         ApplicationNodeImplementation::UpdateFrame(currenttime, elapsedtime);
 
@@ -81,12 +71,12 @@ namespace viscom {
 #ifdef VISCOM_USE_SGCT
     void CoordinatorNode::PreSync()
     {
-        demoSyncInfoSynced_.setVal(demoSyncInfoLocal_);
+        syncInfoSynced_.setVal(syncInfoLocal_);
     }
 
     void CoordinatorNode::EncodeData()
     {
-        sgct::SharedData::instance()->writeObj(&demoSyncInfoSynced_);
+        sgct::SharedData::instance()->writeObj(&syncInfoSynced_);
     }
 #endif
 
@@ -97,99 +87,94 @@ namespace viscom {
             ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiSetCond_FirstUseEver);
             ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
             ImGui::StyleColorsClassic();
-            if (ImGui::Begin("MasterTestWindow", nullptr))
+            if (ImGui::Begin("Coordinator GUI", nullptr))
             {
-                ImGui::Text("Hello World on Master!");
-                if (initVr_) {
-                    ImGui::Text("VR Init successful");
-                    ImGui::Checkbox("Use left controller as main controller", &useLeftHandController);
-                    ImGui::NewLine();
 
-                    std::uint32_t trackerid = 65;
-                    glm::vec3 position = glm::vec3();
-                    glm::vec3 zvector = glm::vec3();
-                    glm::quat rotation = glm::quat();
-                    for (ovr::DeviceInfo d : connectedDevices_) {
-                        if (d.deviceClass_ == ovr::TrackedDeviceClass::CONTROLLER) {
-                            glm::vec3 position = GetControllerPosition(d.deviceId_);
-                            glm::vec3 zvector = GetControllerDirection(d.deviceId_);
-                            glm::quat rotation = GetControllerOrientation(d.deviceId_);
-                            ImGui::Text("Controller %i: position x: %.2f, y: %.2f, z: %.2f", d.deviceId_, position[0], position[1], position[2]);
-                            ImGui::Text("              zVector x: %.2f, y: %.2f, z: %.2f", zvector[0], zvector[1], zvector[2]);
-                            ImGui::Text("              rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
+                if (ImGui::Button("Load Correction From Image Colors"))
+                {
+                    std::ifstream readColorsFile;
+                    readColorsFile.open("colors_from_image.txt");
 
-                            ImGui::Text("              hand: %i", d.deviceRole_);
+                    for (int i = 0; i < 12; i++) {
 
-
-                            // Optionally display all the button states
-                            for (int buttonId = 0; buttonId < 64; buttonId++) {
-                                glm::vec2 axis;
-                                ovr::ButtonState buttonState;
-                                GetControllerButtonState(d.deviceId_, buttonId, axis, buttonState);
-                                ImGui::Text("              Button %i state: %i (%.2f, %.2f)", buttonId, buttonState, axis.x, axis.y);
-                            }
-
-                        }
-                        if (d.deviceClass_ == ovr::TrackedDeviceClass::GENERIC_TRACKER) trackerid = d.deviceId_;
-                    }
-
-                    ImGui::NewLine();
-                    //ImGui::Text("midDisplaypos x: %.2f y: %.2f z: %.2f", midDisplayPos.v[0], midDisplayPos.v[1], midDisplayPos.v[2]);
-                    if (trackerid != 65) {
-                        position = GetControllerPosition(trackerid);
-                        rotation = GetControllerOrientation(trackerid);
-                        ImGui::Text("Tracker    position x: %.2f, y: %.2f, z: %.2f", position[0], position[1], position[2]);
-                        ImGui::Text("           rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
-                    }
-                    //ImGui::Text("SGCT Tracker Position x: %.2f, y: %.2f, z: %.2f", sgctTrackerPos.v[0], sgctTrackerPos.v[1], sgctTrackerPos.v[2]);
-                    ImGui::NewLine();
-                    if (ImGui::Button("Calibrate by Touching")) {
-                        CalibrateVR(ovr::CalibrateMethod::CALIBRATE_BY_TOUCHING);
-                    }
-                    if (ImGui::Button("Calibrate by Pointing")) {
-                        CalibrateVR(ovr::CalibrateMethod::CALIBRATE_BY_POINTING);
-                    }
-                    ImGui::NewLine();
-                    ImGui::Text("Connected devices:");
-                    for (ovr::DeviceInfo d : connectedDevices_) {
-                        switch (d.deviceClass_)
+                        std::string line;
+                        if (std::getline(readColorsFile, line))
                         {
-                        case ovr::TrackedDeviceClass::CONTROLLER:
-                            switch (d.deviceRole_)
-                            {
-                            case ovr::TrackedDeviceRole::CONTROLLER_LEFT_HAND:
-                                ImGui::Text("Controller %i Role: Left Hand Controller", d.deviceId_);
-                                break;
-                            case ovr::TrackedDeviceRole::CONTROLLER_RIGHT_HAND:
-                                ImGui::Text("Controller %i Role: Right Hand Controller", d.deviceId_);
-                                break;
-                            default:
-                                ImGui::Text("Controller %i Role: No Role", d.deviceId_);
-                                break;
-                            }
-                            break;
-                        case ovr::TrackedDeviceClass::GENERIC_TRACKER:
-                            ImGui::Text("Tracker %i Role: Generic Tracker", d.deviceId_);
-                            break;
-                        case ovr::TrackedDeviceClass::HMD:
-                            ImGui::Text("HMD %i ", d.deviceId_);
-                            break;
-                        case ovr::TrackedDeviceClass::DISPLAY_REDIRECT:
-                            ImGui::Text("Display Redirect %i", d.deviceId_);
-                            break;
-                        case ovr::TrackedDeviceClass::TRACKING_REFERENCE:
-                            ImGui::Text("Tracking Reference %i", d.deviceId_);
-                            break;
-                        default:
-                            break;
+                            int r = std::stoi(line.substr(0, line.find(' ')));
+                            line = line.substr(line.find(' ') + 1, line.length());
+                            int g = std::stoi(line.substr(0, line.find(' ')));
+                            line = line.substr(line.find(' ') + 1, line.length());
+                            int b = std::stoi(line);
+
+                            syncInfoLocal_.color_[i] = glm::vec3(255.0 / r, 255.0 / g, 255.0 / b);
                         }
                     }
+
+                    readColorsFile.close();
+                }
+
+                if (ImGui::Button("Save Color Correction"))
+                {
+                    std::ofstream correctionFile;
+                    correctionFile.open("colorCorrection.txt");
+
+                    correctionFile << syncInfoLocal_.brightness_ << "\n";
                     
+                    for (int i = 0; i < 12; i++) {
+
+                        correctionFile << syncInfoLocal_.color_[i].x << " ";
+                        correctionFile << syncInfoLocal_.color_[i].y << " ";
+                        correctionFile << syncInfoLocal_.color_[i].z << "\n";
+                    }
+
+                    correctionFile.close();
                 }
-                if (!initVr_) {
-                    ImGui::Text("Open VR not initialized! Please start SteamVR.");
+
+                ImGui::Checkbox("Calibrate", &syncInfoLocal_.calibrateColor_);
+                ImGui::Checkbox("Normalized", &normalizedColors_);
+
+                if (normalizedColors_)
+                {
+                    ImGui::SliderFloat("Brightness", &syncInfoLocal_.brightness_, 0.0f, 1.0f);
                 }
-                ImGui::Text("Circle Pos x: %f, y: %f, radius: %f", demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, demoSyncInfoLocal_.circleData_.z);
+                else
+                {
+                    int br = int(syncInfoLocal_.brightness_ * 255.0f);
+
+                    ImGui::InputInt("Brightness", &br);
+
+                    syncInfoLocal_.brightness_ = float(br) / 255.0f;
+                }
+
+                for (int i = 0; i < 12; i++) {
+
+                    std::string labelr = "Red " + std::to_string(i);
+                    std::string labelg = "Green " + std::to_string(i);
+                    std::string labelb = "Blue " + std::to_string(i);
+
+                    // Color Slider
+                    ImGui::Text("Projector %i", i);
+                    if (normalizedColors_)
+                    {
+                        ImGui::SliderFloat(labelr.c_str(), &syncInfoLocal_.color_[(i + 2) % 12].x, 0.0f, 1.0f);
+                        ImGui::SliderFloat(labelg.c_str(), &syncInfoLocal_.color_[(i + 2) % 12].y, 0.0f, 1.0f);
+                        ImGui::SliderFloat(labelb.c_str(), &syncInfoLocal_.color_[(i + 2) % 12].z, 0.0f, 1.0f);
+                    }
+                    else
+                    {
+                        int cr = int(syncInfoLocal_.color_[(i + 2) % 12].x * 255.0f);
+                        int cg = int(syncInfoLocal_.color_[(i + 2) % 12].y * 255.0f);
+                        int cb = int(syncInfoLocal_.color_[(i + 2) % 12].z * 255.0f);
+
+                        ImGui::InputInt(labelr.c_str(), &cr);
+                        ImGui::InputInt(labelg.c_str(), &cg);
+                        ImGui::InputInt(labelb.c_str(), &cb);
+
+                        syncInfoLocal_.color_[(i + 2) % 12].x = float(cr) / 255.0f;
+                        syncInfoLocal_.color_[(i + 2) % 12].y = float(cg) / 255.0f;
+                        syncInfoLocal_.color_[(i + 2) % 12].z = float(cb) / 255.0f;
+                    }
+                }
             }
             ImGui::End();
         });

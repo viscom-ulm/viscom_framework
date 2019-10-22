@@ -33,5 +33,7 @@ namespace viscom {
         bool useLeftHandController = true;
         bool initVr_ = false;
         std::vector<ovr::DeviceInfo> connectedDevices_ = std::vector<ovr::DeviceInfo>();
+
+        bool normalizedColors_ = true;
     };
 }
