@@ -17,8 +17,8 @@ namespace viscom {
     class AnimationState;
 
     struct syncedInfo {
-        glm::vec3 color_[12];
         float brightness_;
+        glm::vec3 colors_[12];
         bool calibrateColor_ = true;
     };
 

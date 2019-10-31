@@ -42,7 +42,7 @@ namespace viscom {
                 line = line.substr(line.find(' ') + 1, line.length());
                 float b = float(std::atof(line.c_str()));
 
-                syncInfoLocal_.color_[i] = glm::vec3(r, g, b);
+                syncInfoLocal_.colors_[i] = glm::vec3(r, g, b);
             }
         }
 
@@ -106,7 +106,9 @@ namespace viscom {
                             line = line.substr(line.find(' ') + 1, line.length());
                             int b = std::stoi(line);
 
-                            syncInfoLocal_.color_[i] = glm::vec3(255.0 / r, 255.0 / g, 255.0 / b);
+                            glm::vec3 rgbLinear = glm::pow(glm::vec3(1.0f * r / 255.0f, 1.0f * g / 255.0f, 1.0f * b / 255.0f), glm::vec3(2.2f));
+
+                            syncInfoLocal_.colors_[i] = glm::vec3(1.0f / rgbLinear.x, 1.0f / rgbLinear.y, 1.0f / rgbLinear.z);
                         }
                     }
 
@@ -122,9 +124,9 @@ namespace viscom {
                     
                     for (int i = 0; i < 12; i++) {
 
-                        correctionFile << syncInfoLocal_.color_[i].x << " ";
-                        correctionFile << syncInfoLocal_.color_[i].y << " ";
-                        correctionFile << syncInfoLocal_.color_[i].z << "\n";
+                        correctionFile << syncInfoLocal_.colors_[i].x << " ";
+                        correctionFile << syncInfoLocal_.colors_[i].y << " ";
+                        correctionFile << syncInfoLocal_.colors_[i].z << "\n";
                     }
 
                     correctionFile.close();
@@ -156,23 +158,23 @@ namespace viscom {
                     ImGui::Text("Projector %i", i);
                     if (normalizedColors_)
                     {
-                        ImGui::SliderFloat(labelr.c_str(), &syncInfoLocal_.color_[(i + 2) % 12].x, 0.0f, 1.0f);
-                        ImGui::SliderFloat(labelg.c_str(), &syncInfoLocal_.color_[(i + 2) % 12].y, 0.0f, 1.0f);
-                        ImGui::SliderFloat(labelb.c_str(), &syncInfoLocal_.color_[(i + 2) % 12].z, 0.0f, 1.0f);
+                        ImGui::SliderFloat(labelr.c_str(), &syncInfoLocal_.colors_[(i + 2) % 12].x, 0.0f, 1.0f);
+                        ImGui::SliderFloat(labelg.c_str(), &syncInfoLocal_.colors_[(i + 2) % 12].y, 0.0f, 1.0f);
+                        ImGui::SliderFloat(labelb.c_str(), &syncInfoLocal_.colors_[(i + 2) % 12].z, 0.0f, 1.0f);
                     }
                     else
                     {
-                        int cr = int(syncInfoLocal_.color_[(i + 2) % 12].x * 255.0f);
-                        int cg = int(syncInfoLocal_.color_[(i + 2) % 12].y * 255.0f);
-                        int cb = int(syncInfoLocal_.color_[(i + 2) % 12].z * 255.0f);
+                        int cr = int(syncInfoLocal_.colors_[(i + 2) % 12].x * 255.0f);
+                        int cg = int(syncInfoLocal_.colors_[(i + 2) % 12].y * 255.0f);
+                        int cb = int(syncInfoLocal_.colors_[(i + 2) % 12].z * 255.0f);
 
                         ImGui::InputInt(labelr.c_str(), &cr);
                         ImGui::InputInt(labelg.c_str(), &cg);
                         ImGui::InputInt(labelb.c_str(), &cb);
 
-                        syncInfoLocal_.color_[(i + 2) % 12].x = float(cr) / 255.0f;
-                        syncInfoLocal_.color_[(i + 2) % 12].y = float(cg) / 255.0f;
-                        syncInfoLocal_.color_[(i + 2) % 12].z = float(cb) / 255.0f;
+                        syncInfoLocal_.colors_[(i + 2) % 12].x = float(cr) / 255.0f;
+                        syncInfoLocal_.colors_[(i + 2) % 12].y = float(cg) / 255.0f;
+                        syncInfoLocal_.colors_[(i + 2) % 12].z = float(cb) / 255.0f;
                     }
                 }
             }

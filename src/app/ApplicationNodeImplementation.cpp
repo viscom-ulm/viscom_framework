@@ -66,8 +66,9 @@ namespace viscom {
 
             glUseProgram(colorQuad_->GetGPUProgram()->getProgramId());
 
-            glm::vec3 color = glm::vec3(syncInfoLocal_.color_[projectorID].x, syncInfoLocal_.color_[projectorID].y, syncInfoLocal_.color_[projectorID].z);
+            glm::vec3 color = glm::vec3(syncInfoLocal_.colors_[projectorID].x, syncInfoLocal_.colors_[projectorID].y, syncInfoLocal_.colors_[projectorID].z);
             color = color * syncInfoLocal_.brightness_;
+            color = glm::pow(color, glm::vec3(1.0f / 2.2f));
 
             if (!syncInfoLocal_.calibrateColor_) color = glm::vec3(1.0);
 
