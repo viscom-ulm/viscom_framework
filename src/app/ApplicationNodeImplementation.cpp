@@ -62,7 +62,7 @@ namespace viscom {
 
             size_t nodeID = sgct_core::ClusterManager::instance()->getThisNodeId();
             size_t windowID = GetCurrentWindowID();
-            size_t projectorID = 2 * nodeID + windowID;
+            size_t projectorID = 2 * (nodeID - 1) + windowID;
 
             glUseProgram(colorQuad_->GetGPUProgram()->getProgramId());
 
