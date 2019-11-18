@@ -92,27 +92,55 @@ namespace viscom {
 
                 if (ImGui::Button("Load Correction From Image Colors"))
                 {
+                    float rmax = 0.0;
+                    float gmax = 0.0;
+                    float bmax = 0.0;
+
                     std::ifstream readColorsFile;
-                    readColorsFile.open("colors_from_image.txt");
+                    readColorsFile.open("colors_from_image_wb2.txt");
 
                     for (int i = 0; i < 12; i++) {
 
                         std::string line;
                         if (std::getline(readColorsFile, line))
                         {
-                            int r = std::stoi(line.substr(0, line.find(' ')));
+                            //Reading white point...
+                            int wr = std::stoi(line.substr(0, line.find(' ')));
                             line = line.substr(line.find(' ') + 1, line.length());
-                            int g = std::stoi(line.substr(0, line.find(' ')));
+                            int wg = std::stoi(line.substr(0, line.find(' ')));
                             line = line.substr(line.find(' ') + 1, line.length());
-                            int b = std::stoi(line);
+                            int wb = std::stoi(line.substr(0, line.find(' ')));
+                            //...and black point
+                            line = line.substr(line.find(' ') + 1, line.length());
+                            int br = std::stoi(line.substr(0, line.find(' ')));
+                            line = line.substr(line.find(' ') + 1, line.length());
+                            int bg = std::stoi(line.substr(0, line.find(' ')));
+                            line = line.substr(line.find(' ') + 1, line.length());
+                            int bb = std::stoi(line);
 
-                            glm::vec3 rgbLinear = glm::pow(glm::vec3(1.0f * r / 255.0f, 1.0f * g / 255.0f, 1.0f * b / 255.0f), glm::vec3(2.2f));
+                            //Linearizing white and black point
+                            glm::vec3 whiteRGBlinear = glm::pow(glm::vec3(1.0f * wr / 255.0f, 1.0f * wg / 255.0f, 1.0f * wb / 255.0f), glm::vec3(2.2f));
+                            glm::vec3 blackRGBlinear = glm::pow(glm::vec3(1.0f * br / 255.0f, 1.0f * bg / 255.0f, 1.0f * bb / 255.0f), glm::vec3(2.2f));
 
-                            syncInfoLocal_.colors_[i] = glm::vec3(1.0f / rgbLinear.x, 1.0f / rgbLinear.y, 1.0f / rgbLinear.z);
+                            //Storing white minus black
+                            syncInfoLocal_.colors_[i] = glm::vec3(whiteRGBlinear.x - blackRGBlinear.x, whiteRGBlinear.y - blackRGBlinear.y, whiteRGBlinear.z - blackRGBlinear.z);
+
+                            //Storing max values for red, green and blue
+                            if (syncInfoLocal_.colors_[i].x > rmax) rmax = syncInfoLocal_.colors_[i].x;
+                            if (syncInfoLocal_.colors_[i].y > gmax) gmax = syncInfoLocal_.colors_[i].y;
+                            if (syncInfoLocal_.colors_[i].z > bmax) bmax = syncInfoLocal_.colors_[i].z;
                         }
                     }
 
                     readColorsFile.close();
+
+                    for (int i = 0; i < 12; i++) {
+
+                        //Scaling the stored values with the max rgb values and inverting to get the final mask values
+                        syncInfoLocal_.colors_[i].x = rmax / syncInfoLocal_.colors_[i].x;
+                        syncInfoLocal_.colors_[i].y = gmax / syncInfoLocal_.colors_[i].y;
+                        syncInfoLocal_.colors_[i].z = bmax / syncInfoLocal_.colors_[i].z;
+                    }
                 }
 
                 if (ImGui::Button("Save Color Correction"))
@@ -158,23 +186,23 @@ namespace viscom {
                     ImGui::Text("Projector %i", i);
                     if (normalizedColors_)
                     {
-                        ImGui::SliderFloat(labelr.c_str(), &syncInfoLocal_.colors_[(i + 2) % 12].x, 0.0f, 1.0f);
-                        ImGui::SliderFloat(labelg.c_str(), &syncInfoLocal_.colors_[(i + 2) % 12].y, 0.0f, 1.0f);
-                        ImGui::SliderFloat(labelb.c_str(), &syncInfoLocal_.colors_[(i + 2) % 12].z, 0.0f, 1.0f);
+                        ImGui::SliderFloat(labelr.c_str(), &syncInfoLocal_.colors_[i].x, 0.0f, 2.0f);
+                        ImGui::SliderFloat(labelg.c_str(), &syncInfoLocal_.colors_[i].y, 0.0f, 2.0f);
+                        ImGui::SliderFloat(labelb.c_str(), &syncInfoLocal_.colors_[i].z, 0.0f, 2.0f);
                     }
                     else
                     {
-                        int cr = int(syncInfoLocal_.colors_[(i + 2) % 12].x * 255.0f);
-                        int cg = int(syncInfoLocal_.colors_[(i + 2) % 12].y * 255.0f);
-                        int cb = int(syncInfoLocal_.colors_[(i + 2) % 12].z * 255.0f);
+                        int cr = int(syncInfoLocal_.colors_[i].x * 255.0f);
+                        int cg = int(syncInfoLocal_.colors_[i].y * 255.0f);
+                        int cb = int(syncInfoLocal_.colors_[i].z * 255.0f);
 
                         ImGui::InputInt(labelr.c_str(), &cr);
                         ImGui::InputInt(labelg.c_str(), &cg);
                         ImGui::InputInt(labelb.c_str(), &cb);
 
-                        syncInfoLocal_.colors_[(i + 2) % 12].x = float(cr) / 255.0f;
-                        syncInfoLocal_.colors_[(i + 2) % 12].y = float(cg) / 255.0f;
-                        syncInfoLocal_.colors_[(i + 2) % 12].z = float(cb) / 255.0f;
+                        syncInfoLocal_.colors_[i].x = float(cr) / 255.0f;
+                        syncInfoLocal_.colors_[i].y = float(cg) / 255.0f;
+                        syncInfoLocal_.colors_[i].z = float(cb) / 255.0f;
                     }
                 }
             }
