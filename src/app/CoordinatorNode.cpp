@@ -97,7 +97,7 @@ namespace viscom {
                     float bmax = 0.0;
 
                     std::ifstream readColorsFile;
-                    readColorsFile.open("colors_from_image_wb2.txt");
+                    readColorsFile.open("colors_from_image.txt");
 
                     for (int i = 0; i < 12; i++) {
 

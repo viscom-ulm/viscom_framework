@@ -44,12 +44,7 @@ namespace viscom {
 
     private:
         FullscreenQuad* colorQuad_;
-        FullscreenQuad* textureQuad_;
-
         GLint colorUniformLoc_;
-        GLint textureUniformLoc_;
-
-        std::shared_ptr<Texture> tex_;
 
         std::vector<ovr::DeviceInfo> connectedDevices_;
 
