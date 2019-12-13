@@ -24,7 +24,9 @@ namespace viscom {
 
         // Read Color Correction File
         std::ifstream correctionFile;
-        correctionFile.open("colorCorrection.txt");
+        correctionFile.open(GetConfig().projectorColorData_);
+
+
 
         std::string line;
         if (std::getline(correctionFile, line))
@@ -97,7 +99,7 @@ namespace viscom {
                     float bmax = 0.0;
 
                     std::ifstream readColorsFile;
-                    readColorsFile.open("colors_from_image.txt");
+                    readColorsFile.open("colors_from_image2.txt");
 
                     for (int i = 0; i < 12; i++) {
 
@@ -146,7 +148,7 @@ namespace viscom {
                 if (ImGui::Button("Save Color Correction"))
                 {
                     std::ofstream correctionFile;
-                    correctionFile.open("colorCorrection.txt");
+                    correctionFile.open(GetConfig().projectorColorData_);
 
                     correctionFile << syncInfoLocal_.brightness_ << "\n";
                     
