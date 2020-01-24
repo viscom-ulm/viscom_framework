@@ -22,11 +22,13 @@ namespace viscom {
         initVr_ = InitialiseVR();
         InitialiseDisplayVR();
 
+        for (int i = 0; i < 24; i++) {
+            syncInfoLocal_.colors_[i] = glm::vec3(1.0);
+        }
+
         // Read Color Correction File
         std::ifstream correctionFile;
         correctionFile.open(GetConfig().projectorColorData_);
-
-
 
         std::string line;
         if (std::getline(correctionFile, line))
@@ -34,18 +36,18 @@ namespace viscom {
             syncInfoLocal_.brightness_ = float(std::atof(line.c_str()));
         }
 
-        for (int i = 0; i < 12; i++) {
+        while(std::getline(correctionFile, line)){
             
-            if (std::getline(correctionFile, line))
-            {
-                float r = float(std::atof(line.substr(0, line.find(' ')).c_str()));
-                line = line.substr(line.find(' ') + 1, line.length());
-                float g = float(std::atof(line.substr(0, line.find(' ')).c_str()));
-                line = line.substr(line.find(' ') + 1, line.length());
-                float b = float(std::atof(line.c_str()));
+            int projectorNo = int(std::atoi(line.substr(0, line.find(' ')).c_str()));
+            line = line.substr(line.find(' ') + 1, line.length());
+            float r = float(std::atof(line.substr(0, line.find(' ')).c_str()));
+            line = line.substr(line.find(' ') + 1, line.length());
+            float g = float(std::atof(line.substr(0, line.find(' ')).c_str()));
+            line = line.substr(line.find(' ') + 1, line.length());
+            float b = float(std::atof(line.c_str()));
 
-                syncInfoLocal_.colors_[i] = glm::vec3(r, g, b);
-            }
+            syncInfoLocal_.colors_[projectorNo] = glm::vec3(r, g, b);
+            LOG(DBUG) << syncInfoLocal_.colors_[projectorNo].x * syncInfoLocal_.brightness_ << " " << syncInfoLocal_.colors_[projectorNo].y * syncInfoLocal_.brightness_ << " " << syncInfoLocal_.colors_[projectorNo].z * syncInfoLocal_.brightness_ << "\n";
         }
 
         correctionFile.close();
@@ -92,7 +94,7 @@ namespace viscom {
             if (ImGui::Begin("Coordinator GUI", nullptr))
             {
 
-                if (ImGui::Button("Load Correction From Image Colors"))
+                /*if (ImGui::Button("Load Correction From Image Colors"))
                 {
                     float rmax = 0.0;
                     float gmax = 0.0;
@@ -143,7 +145,7 @@ namespace viscom {
                         syncInfoLocal_.colors_[i].y = gmax / syncInfoLocal_.colors_[i].y;
                         syncInfoLocal_.colors_[i].z = bmax / syncInfoLocal_.colors_[i].z;
                     }
-                }
+                }*/
 
                 if (ImGui::Button("Save Color Correction"))
                 {
@@ -152,11 +154,16 @@ namespace viscom {
 
                     correctionFile << syncInfoLocal_.brightness_ << "\n";
                     
-                    for (int i = 0; i < 12; i++) {
+                    for (int slaveId = 1; slaveId < sgct_core::ClusterManager::instance()->getNumberOfNodes(); slaveId++) { // Starting with the first worker node
+                        for (int windowId = 0; windowId < sgct_core::ClusterManager::instance()->getNodePtr(slaveId)->getNumberOfWindows(); windowId++) {
 
-                        correctionFile << syncInfoLocal_.colors_[i].x << " ";
-                        correctionFile << syncInfoLocal_.colors_[i].y << " ";
-                        correctionFile << syncInfoLocal_.colors_[i].z << "\n";
+                            auto projectorNo = GetApplication()->GetFramework().GetGlobalProjectorId(slaveId, windowId);
+
+                            correctionFile << projectorNo << " ";
+                            correctionFile << syncInfoLocal_.colors_[projectorNo].x << " ";
+                            correctionFile << syncInfoLocal_.colors_[projectorNo].y << " ";
+                            correctionFile << syncInfoLocal_.colors_[projectorNo].z << "\n";
+                        }
                     }
 
                     correctionFile.close();
@@ -178,33 +185,36 @@ namespace viscom {
                     syncInfoLocal_.brightness_ = float(br) / 255.0f;
                 }
 
-                for (int i = 0; i < 12; i++) {
+                for (int slaveId = 1; slaveId < sgct_core::ClusterManager::instance()->getNumberOfNodes(); slaveId++) { // Starting with the first worker node
+                    for (int windowId = 0; windowId < sgct_core::ClusterManager::instance()->getNodePtr(slaveId)->getNumberOfWindows(); windowId++) {
 
-                    std::string labelr = "Red " + std::to_string(i);
-                    std::string labelg = "Green " + std::to_string(i);
-                    std::string labelb = "Blue " + std::to_string(i);
+                        auto projectorNo = GetApplication()->GetFramework().GetGlobalProjectorId(slaveId, windowId);
 
-                    // Color Slider
-                    ImGui::Text("Projector %i", i);
-                    if (normalizedColors_)
-                    {
-                        ImGui::SliderFloat(labelr.c_str(), &syncInfoLocal_.colors_[i].x, 0.0f, 2.0f);
-                        ImGui::SliderFloat(labelg.c_str(), &syncInfoLocal_.colors_[i].y, 0.0f, 2.0f);
-                        ImGui::SliderFloat(labelb.c_str(), &syncInfoLocal_.colors_[i].z, 0.0f, 2.0f);
-                    }
-                    else
-                    {
-                        int cr = int(syncInfoLocal_.colors_[i].x * 255.0f);
-                        int cg = int(syncInfoLocal_.colors_[i].y * 255.0f);
-                        int cb = int(syncInfoLocal_.colors_[i].z * 255.0f);
+                        std::string labelr = "Red " + std::to_string(projectorNo);
+                        std::string labelg = "Green " + std::to_string(projectorNo);
+                        std::string labelb = "Blue " + std::to_string(projectorNo);
 
-                        ImGui::InputInt(labelr.c_str(), &cr);
-                        ImGui::InputInt(labelg.c_str(), &cg);
-                        ImGui::InputInt(labelb.c_str(), &cb);
+                        ImGui::Text("Node %i, Projector %i, GlobalProjectorId: %i", slaveId, windowId, projectorNo);
+                        if (normalizedColors_)
+                        {
+                            ImGui::SliderFloat(labelr.c_str(), &syncInfoLocal_.colors_[projectorNo].x, 0.0f, 2.0f);
+                            ImGui::SliderFloat(labelg.c_str(), &syncInfoLocal_.colors_[projectorNo].y, 0.0f, 2.0f);
+                            ImGui::SliderFloat(labelb.c_str(), &syncInfoLocal_.colors_[projectorNo].z, 0.0f, 2.0f);
+                        }
+                        else
+                        {
+                            int cr = int(syncInfoLocal_.colors_[projectorNo].x * 255.0f);
+                            int cg = int(syncInfoLocal_.colors_[projectorNo].y * 255.0f);
+                            int cb = int(syncInfoLocal_.colors_[projectorNo].z * 255.0f);
 
-                        syncInfoLocal_.colors_[i].x = float(cr) / 255.0f;
-                        syncInfoLocal_.colors_[i].y = float(cg) / 255.0f;
-                        syncInfoLocal_.colors_[i].z = float(cb) / 255.0f;
+                            ImGui::InputInt(labelr.c_str(), &cr);
+                            ImGui::InputInt(labelg.c_str(), &cg);
+                            ImGui::InputInt(labelb.c_str(), &cb);
+
+                            syncInfoLocal_.colors_[projectorNo].x = float(cr) / 255.0f;
+                            syncInfoLocal_.colors_[projectorNo].y = float(cg) / 255.0f;
+                            syncInfoLocal_.colors_[projectorNo].z = float(cb) / 255.0f;
+                        }
                     }
                 }
             }

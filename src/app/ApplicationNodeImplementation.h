@@ -18,7 +18,7 @@ namespace viscom {
 
     struct syncedInfo {
         float brightness_;
-        glm::vec3 colors_[12];
+        glm::vec3 colors_[24];
         bool calibrateColor_ = true;
     };
 
