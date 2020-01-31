@@ -56,6 +56,12 @@ set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 17)
 target_include_directories(${APP_NAME} PRIVATE src)
 target_link_libraries(${APP_NAME} VISCOMCore)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(${APP_NAME} PRIVATE -stdlib=libc++)
+    target_link_libraries(${APP_NAME} -stdlib=libc++ c++experimental c++abi)
+    target_include_directories(${APP_NAME} SYSTEM BEFORE PRIVATE /usr/include/c++/v1)
+endif()
+
 if(MSVC)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${APP_NAME})
 endif()

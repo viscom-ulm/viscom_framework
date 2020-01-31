@@ -177,7 +177,7 @@ namespace viscom {
             {
                 glUseProgram(backgroundProgram_->getProgramId());
                 glUniformMatrix4fv(backgroundMVPLoc_, 1, GL_FALSE, glm::value_ptr(MVP));
-                glDrawArrays(GL_TRIANGLES, 0, numBackgroundVertices_);
+                glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(numBackgroundVertices_));
             }
 
             {
@@ -185,7 +185,7 @@ namespace viscom {
                 auto triangleMVP = MVP * triangleModelMatrix_;
                 glUseProgram(triangleProgram_->getProgramId());
                 glUniformMatrix4fv(triangleMVPLoc_, 1, GL_FALSE, glm::value_ptr(triangleMVP));
-                glDrawArrays(GL_TRIANGLES, numBackgroundVertices_, 3);
+                glDrawArrays(GL_TRIANGLES, static_cast<GLsizei>(numBackgroundVertices_), 3);
                 glEnable(GL_CULL_FACE);
             }
             
