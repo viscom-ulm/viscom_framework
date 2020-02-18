@@ -10,7 +10,7 @@
 #include "core/open_gl.h"
 #include <fstream>
 #include <imgui.h>
-#include <glm\gtc\matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/random.hpp>
 
 namespace viscom {

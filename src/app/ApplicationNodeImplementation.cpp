@@ -167,7 +167,7 @@ namespace viscom {
             auto globalScreenSize = glm::ivec2(GetConfig().virtualScreenSize_);
 #endif
 
-            float screenSizeRatio = 1.0f * globalScreenSize.x / globalScreenSize.y / GetConfig().nearPlaneSize_.x;
+            float screenSizeRatio = static_cast<float>(globalScreenSize.x) / static_cast<float>(globalScreenSize.y) / static_cast<float>(GetConfig().nearPlaneSize_.x);
 
             float circleSize = demoSyncInfoLocal_.circleData_.z * globalScreenSize.y;
             if (circleSize < 1.0) circleSize = 1.0;
@@ -191,7 +191,7 @@ namespace viscom {
             
             {
                 auto mousepointMVP = screenMatrix * mousepointModelMatrix_;
-                glPointSize(0.03f * globalScreenSize.y);
+                glPointSize(0.03f * static_cast<float>(globalScreenSize.y));
                 glUseProgram(mousepointProgram_->getProgramId());
                 glUniformMatrix4fv(mousepointMVPLoc_, 1, GL_FALSE, glm::value_ptr(mousepointMVP));
                 glDrawArrays(GL_POINTS, numBackgroundVertices_+3, 1);
