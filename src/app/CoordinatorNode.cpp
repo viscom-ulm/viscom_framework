@@ -57,7 +57,7 @@ namespace viscom {
         viscom::ovr::ButtonState triggerButtonState;
         GetControllerButtonState(controllerindex, 33, axisValues, triggerButtonState);
 
-        if (axisValues.x == 1.0 && demoSyncInfoLocal_.circleHit_ || demoSyncInfoLocal_.circleData_.z > circleMaxSize) {
+        if ((axisValues.x == 1.0 && demoSyncInfoLocal_.circleHit_) || demoSyncInfoLocal_.circleData_.z > circleMaxSize) {
             demoSyncInfoLocal_.circleData_.x = glm::linearRand(-1.0f, 1.0f);
             demoSyncInfoLocal_.circleData_.y = glm::linearRand(-1.0f, 1.0f);
 
@@ -107,7 +107,6 @@ namespace viscom {
 
                     std::uint32_t trackerid = 65;
                     glm::vec3 position = glm::vec3();
-                    glm::vec3 zvector = glm::vec3();
                     glm::quat rotation = glm::quat();
                     for (ovr::DeviceInfo d : connectedDevices_) {
                         if (d.deviceClass_ == ovr::TrackedDeviceClass::CONTROLLER) {
@@ -125,7 +124,7 @@ namespace viscom {
                             for (int buttonId = 0; buttonId < 64; buttonId++) {
                                 glm::vec2 axis;
                                 ovr::ButtonState buttonState;
-                                GetControllerButtonState(d.deviceId_, buttonId, axis, buttonState);
+                                GetControllerButtonState(d.deviceId_, static_cast<std::size_t>(buttonId), axis, buttonState);
                                 ImGui::Text("              Button %i state: %i (%.2f, %.2f)", buttonId, buttonState, axis.x, axis.y);
                             }
 

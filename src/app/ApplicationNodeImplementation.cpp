@@ -169,7 +169,7 @@ namespace viscom {
 
             float screenSizeRatio = static_cast<float>(globalScreenSize.x) / static_cast<float>(globalScreenSize.y) / static_cast<float>(GetConfig().nearPlaneSize_.x);
 
-            float circleSize = demoSyncInfoLocal_.circleData_.z * globalScreenSize.y;
+            float circleSize = demoSyncInfoLocal_.circleData_.z * static_cast<float>(globalScreenSize.y);
             if (circleSize < 1.0) circleSize = 1.0;
 
             LOG(INFO) << demoSyncInfoLocal_.circleData_.x << ",    " << demoSyncInfoLocal_.circleData_.y << ",     " << demoSyncInfoLocal_.circleData_.z << "\n";
