@@ -125,7 +125,7 @@ namespace viscom {
                                 glm::vec2 axis;
                                 ovr::ButtonState buttonState;
                                 GetControllerButtonState(d.deviceId_, static_cast<std::size_t>(buttonId), axis, buttonState);
-                                ImGui::Text("              Button %i state: %i (%.2f, %.2f)", static_cast<int>(buttonId), buttonState, axis.x, axis.y);
+                                ImGui::Text("              Button %i state: %i (%.2f, %.2f)", static_cast<int>(buttonId), static_cast<int>(buttonState), axis.x, axis.y);
                             }
 
                         }
