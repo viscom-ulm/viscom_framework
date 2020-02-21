@@ -194,7 +194,7 @@ namespace viscom {
                 glPointSize(0.03f * static_cast<float>(globalScreenSize.y));
                 glUseProgram(mousepointProgram_->getProgramId());
                 glUniformMatrix4fv(mousepointMVPLoc_, 1, GL_FALSE, glm::value_ptr(mousepointMVP));
-                glDrawArrays(GL_POINTS, numBackgroundVertices_+3, 1);
+                glDrawArrays(GL_POINTS, static_cast<GLint>(numBackgroundVertices_+3), 1);
             }
 
             glBindVertexArray(vaoCircles_);
@@ -209,7 +209,7 @@ namespace viscom {
                 glUniform1i(demoCirclesHitLoc_, demoSyncInfoLocal_.circleHit_);
                 glUniform1f(demoCirclesSizeLoc_, circleSize);
                 glUniform1f(demoCirclesRatioLoc_, screenSizeRatio);
-                glDrawArrays(GL_POINTS, 0, numCirclesVertices_);
+                glDrawArrays(GL_POINTS, 0, static_cast<GLint>(numCirclesVertices_));
             }
 
             glBindVertexArray(vaoBackgroundGrid_);
@@ -245,7 +245,7 @@ namespace viscom {
      }
 #endif
 
-    bool ApplicationNodeImplementation::KeyboardCallback(int key, int scancode, int action, int mods)
+    bool ApplicationNodeImplementation::KeyboardCallback(int key, int, int action, int)
     {
 
         switch (key)

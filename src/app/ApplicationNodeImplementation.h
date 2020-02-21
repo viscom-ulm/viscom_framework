@@ -69,8 +69,6 @@ namespace viscom {
         GLint demoCirclesSizeLoc_ = -1;
         GLint demoCirclesRatioLoc_ = -1;
 
-        GLint demoCirclesCenterPos_ = -1;
-
         /** Holds the shader program for drawing the foreground teapot. */
         std::shared_ptr<GPUProgram> teapotProgram_;
         /** Holds the location of the VP matrix. */
@@ -94,7 +92,6 @@ namespace viscom {
         GLuint vboCircles_ = 0;
         /** Holds the vertex array object for the background grid. */
         GLuint vaoCircles_ = 0;
-        GLint demoCirclesWindowSize_ = -1;
 
         /** Holds the teapot mesh. */
         std::shared_ptr<Mesh> teapotMesh_;

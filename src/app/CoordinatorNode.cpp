@@ -117,7 +117,7 @@ namespace viscom {
                             ImGui::Text("              zVector x: %.2f, y: %.2f, z: %.2f", zvector[0], zvector[1], zvector[2]);
                             ImGui::Text("              rotation w: %.2f, x: %.2f, y: %.2f, z: %.2f", rotation[0], rotation[1], rotation[2], rotation[3]);
 
-                            ImGui::Text("              hand: %i", d.deviceRole_);
+                            ImGui::Text("              hand: %i", static_cast<int>(d.deviceRole_));
 
 
                             // Optionally display all the button states
@@ -125,7 +125,7 @@ namespace viscom {
                                 glm::vec2 axis;
                                 ovr::ButtonState buttonState;
                                 GetControllerButtonState(d.deviceId_, static_cast<std::size_t>(buttonId), axis, buttonState);
-                                ImGui::Text("              Button %i state: %i (%.2f, %.2f)", buttonId, buttonState, axis.x, axis.y);
+                                ImGui::Text("              Button %i state: %i (%.2f, %.2f)", static_cast<int>(buttonId), buttonState, axis.x, axis.y);
                             }
 
                         }
