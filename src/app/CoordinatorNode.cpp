@@ -93,9 +93,9 @@ namespace viscom {
     void CoordinatorNode::Draw2D(FrameBuffer& fbo)
     {
         fbo.DrawToFBO([this]() {
-            ImGui::ShowTestWindow();
-            ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiSetCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiSetCond_FirstUseEver);
+            ImGui::ShowDemoWindow();
+            ImGui::SetNextWindowPos(ImVec2(60, 60), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
             ImGui::StyleColorsClassic();
             if (ImGui::Begin("MasterTestWindow", nullptr))
             {
