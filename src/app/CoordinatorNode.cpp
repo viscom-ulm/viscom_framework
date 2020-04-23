@@ -6,8 +6,8 @@
  * @brief  Implementation of the coordinator application node.
  */
 
-#include "CoordinatorNode.h"
 #include "core/open_gl.h"
+#include "CoordinatorNode.h"
 #include <fstream>
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -183,7 +183,7 @@ namespace viscom {
                             break;
                         }
                     }
-                    
+
                 }
                 if (!initVr_) {
                     ImGui::Text("Open VR not initialized! Please start SteamVR.");

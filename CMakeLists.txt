@@ -5,7 +5,7 @@ PROJECT(${APP_NAME})
 
 get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(GENERATOR_IS_MULTI_CONFIG)
-    set(CMAKE_CONFIGURATION_TYPES "Debug;Release;DebugWorker" CACHE TYPE INTERNAL FORCE)
+    set(CMAKE_CONFIGURATION_TYPES "Debug;Release;DebugWorker" CACHE STRING INTERNAL FORCE)
     set_property(GLOBAL PROPERTY DEBUG_CONFIGURATIONS "Debug;DebugWorker")
     set(CMAKE_C_FLAGS_DEBUGWORKER ${CMAKE_C_FLAGS_DEBUG})
     set(CMAKE_CXX_FLAGS_DEBUGWORKER ${CMAKE_CXX_FLAGS_DEBUG})
@@ -17,42 +17,32 @@ endif()
 set(VISCOM_APP_NAME "${APP_NAME}" CACHE STRING "Name of the application to be build.")
 set(VISCOM_INSTALL_BASE_PATH "D:/LabShare/cluster/apps/" CACHE PATH "Path to install the project to (should be the shared apps directory).")
 set(VISCOM_CONFIG_NAME "single" CACHE STRING "Name/directory of the configuration files to be used.")
-set(VISCOM_VIRTUAL_SCREEN_X 1920 CACHE INTEGER "Virtual screen size in x direction.")
-set(VISCOM_VIRTUAL_SCREEN_Y 1080 CACHE INTEGER "Virtual screen size in y direction.")
+set(VISCOM_VIRTUAL_SCREEN_X 1920 CACHE STRING "Virtual screen size in x direction.")
+set(VISCOM_VIRTUAL_SCREEN_Y 1080 CACHE STRING "Virtual screen size in y direction.")
 
 add_subdirectory(extern/fwcore)
 
-file(GLOB_RECURSE CFG_FILES ${PROJECT_SOURCE_DIR}/config/*.*)
-file(GLOB_RECURSE DATA_FILES ${PROJECT_SOURCE_DIR}/data/*.*)
-file(GLOB_RECURSE SHADER_FILES ${PROJECT_SOURCE_DIR}/resources/shader/*.*)
+file(GLOB_RECURSE CFG_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/config/*.*)
+file(GLOB_RECURSE DATA_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/data/*.*)
+file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/resources/shader/*.*)
 list(FILTER SHADER_FILES EXCLUDE REGEX ".*\.gen$")
-file(GLOB_RECURSE SRC_FILES
+source_group(TREE ${PROJECT_SOURCE_DIR}/resources/shader PREFIX "shader" FILES ${SHADER_FILES})
+
+
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
     ${PROJECT_SOURCE_DIR}/src/app/*.h
     ${PROJECT_SOURCE_DIR}/src/app/*.cpp)
-file(GLOB SRC_FILES_ROOT
+file(GLOB SRC_FILES_ROOT CONFIGURE_DEPENDS
     ${PROJECT_SOURCE_DIR}/src/*.h
     ${PROJECT_SOURCE_DIR}/src/*.cpp)
 list(APPEND SRC_FILES ${SRC_FILES_ROOT})
-source_group("shader" FILES ${SHADER_FILES})
-
-foreach(f ${SRC_FILES})
-    file(RELATIVE_PATH SRCGR ${PROJECT_SOURCE_DIR} ${f})
-    string(REGEX REPLACE "(.*)(/[^/]*)$" "\\1" SRCGR ${SRCGR})
-    string(REPLACE / \\ SRCGR ${SRCGR})
-    source_group("${SRCGR}" FILES ${f})
-endforeach()
+source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SRC_FILES})
 
 add_executable(${APP_NAME} ${SRC_FILES} ${SHADER_FILES})
 set_target_properties(${APP_NAME} PROPERTIES OUTPUT_NAME ${VISCOM_APP_NAME})
 set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 17)
 target_include_directories(${APP_NAME} PRIVATE src)
 target_link_libraries(${APP_NAME} VISCOMCore)
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(${APP_NAME} PRIVATE -stdlib=libc++)
-    target_link_libraries(${APP_NAME} -stdlib=libc++ c++experimental c++abi)
-    target_include_directories(${APP_NAME} SYSTEM BEFORE PRIVATE /usr/include/c++/v1)
-endif()
 
 if(MSVC)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${APP_NAME})
