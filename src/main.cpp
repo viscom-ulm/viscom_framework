@@ -39,9 +39,11 @@ int main(int argc, char** argv)
         console_sink->set_level(spdlog::level::warn);
         console_sink->set_pattern(fmt::format("[{}] [%^%l%$] %v", logTag));
 
+#ifdef _MSC_VER
         auto devenv_sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
         devenv_sink->set_level(spdlog::level::err);
         devenv_sink->set_pattern(fmt::format("[{}] [%^%l%$] %v", logTag));
+#endif
 
         std::shared_ptr<spdlog::sinks::base_sink<std::mutex>> file_sink;
         if constexpr (viscom::DEBUG_MODE) {
@@ -55,7 +57,11 @@ int main(int argc, char** argv)
             file_sink->set_level(spdlog::level::trace);
         }
 
+#ifdef _MSC_VER
         spdlog::sinks_init_list sink_list = { file_sink, console_sink, devenv_sink };
+#else
+        spdlog::sinks_init_list sink_list = { file_sink, console_sink };
+#endif
         auto logger = std::make_shared<spdlog::logger>(std::string(logTag), sink_list.begin(), sink_list.end());
 
         spdlog::set_default_logger(logger);
