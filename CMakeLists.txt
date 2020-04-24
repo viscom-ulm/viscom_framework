@@ -38,21 +38,11 @@ file(GLOB SRC_FILES_ROOT CONFIGURE_DEPENDS
 list(APPEND SRC_FILES ${SRC_FILES_ROOT})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${SRC_FILES})
 
-
-if (${VISCOM_USE_SGCT})
-    if(MSVC)
-        list(APPEND LIBS_LOW_LEVEL ws2_32)
-    elseif(UNIX)
-        find_package(Threads REQUIRED)
-        list(APPEND LIBS_LOW_LEVEL dl X11 Xrandr Xcursor Xinerama Xxf86vm Threads::Threads)
-    endif()
-endif()
-
 add_executable(${APP_NAME} ${SRC_FILES} ${SHADER_FILES})
 set_target_properties(${APP_NAME} PROPERTIES OUTPUT_NAME ${VISCOM_APP_NAME})
 set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 17)
 target_include_directories(${APP_NAME} PRIVATE src)
-target_link_libraries(${APP_NAME} ${LIBS_LOW_LEVEL} VISCOMCore)
+target_link_libraries(${APP_NAME} VISCOMCore)
 
 if(MSVC)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${APP_NAME})
