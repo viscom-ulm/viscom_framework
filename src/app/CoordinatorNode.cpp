@@ -26,7 +26,7 @@ namespace viscom {
             syncInfoLocal_.colors_[i] = glm::vec3(1.0);
         }
 
-        // Read Color Correction File
+        // Reading RGB mask values from the Color Correction File
         std::ifstream correctionFile;
         correctionFile.open(GetConfig().projectorColorData_);
 
@@ -93,8 +93,9 @@ namespace viscom {
             ImGui::StyleColorsClassic();
             if (ImGui::Begin("Coordinator GUI", nullptr))
             {
-
-                /*if (ImGui::Button("Load Correction From Image Colors"))
+                
+                // Loading rgb values of the projectors from file and calculating the color correction
+                if (ImGui::Button("Load Correction From Image Colors"))
                 {
                     float rmax = 0.0;
                     float gmax = 0.0;
@@ -145,8 +146,9 @@ namespace viscom {
                         syncInfoLocal_.colors_[i].y = gmax / syncInfoLocal_.colors_[i].y;
                         syncInfoLocal_.colors_[i].z = bmax / syncInfoLocal_.colors_[i].z;
                     }
-                }*/
+                }
 
+                // Saving the RGB mask values to file
                 if (ImGui::Button("Save Color Correction"))
                 {
                     std::ofstream correctionFile;
@@ -169,9 +171,13 @@ namespace viscom {
                     correctionFile.close();
                 }
 
+                // Show plain or calibrated result
                 ImGui::Checkbox("Calibrate", &syncInfoLocal_.calibrateColor_);
+
+                // Wether to use normalized values
                 ImGui::Checkbox("Normalized", &normalizedColors_);
 
+                // Slider for global brightness
                 if (normalizedColors_)
                 {
                     ImGui::SliderFloat("Brightness", &syncInfoLocal_.brightness_, 0.0f, 1.0f);
@@ -185,6 +191,7 @@ namespace viscom {
                     syncInfoLocal_.brightness_ = float(br) / 255.0f;
                 }
 
+                // RGB Sliders for each projector
                 for (int slaveId = 1; slaveId < sgct_core::ClusterManager::instance()->getNumberOfNodes(); slaveId++) { // Starting with the first worker node
                     for (int windowId = 0; windowId < sgct_core::ClusterManager::instance()->getNodePtr(slaveId)->getNumberOfWindows(); windowId++) {
 
