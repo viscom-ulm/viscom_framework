@@ -97,12 +97,10 @@ namespace viscom {
                 // Loading rgb values of the projectors from file and calculating the color correction
                 if (ImGui::Button("Load Correction From Image Colors"))
                 {
-                    float rmax = 0.0;
-                    float gmax = 0.0;
-                    float bmax = 0.0;
+                    float rgbmin = 1.0;
 
                     std::ifstream readColorsFile;
-                    readColorsFile.open("colors_from_image2.txt");
+                    readColorsFile.open("colors_from_image.txt");
 
                     for (int i = 0; i < 12; i++) {
 
@@ -130,10 +128,10 @@ namespace viscom {
                             //Storing white minus black
                             syncInfoLocal_.colors_[i] = glm::vec3(whiteRGBlinear.x - blackRGBlinear.x, whiteRGBlinear.y - blackRGBlinear.y, whiteRGBlinear.z - blackRGBlinear.z);
 
-                            //Storing max values for red, green and blue
-                            if (syncInfoLocal_.colors_[i].x > rmax) rmax = syncInfoLocal_.colors_[i].x;
-                            if (syncInfoLocal_.colors_[i].y > gmax) gmax = syncInfoLocal_.colors_[i].y;
-                            if (syncInfoLocal_.colors_[i].z > bmax) bmax = syncInfoLocal_.colors_[i].z;
+                            //Storing the minimal color value for scaling the brightness
+                            if (syncInfoLocal_.colors_[i].x < rgbmin) rgbmin = syncInfoLocal_.colors_[i].x;
+                            if (syncInfoLocal_.colors_[i].y < rgbmin) rgbmin = syncInfoLocal_.colors_[i].y;
+                            if (syncInfoLocal_.colors_[i].z < rgbmin) rgbmin = syncInfoLocal_.colors_[i].z;
                         }
                     }
 
@@ -141,10 +139,10 @@ namespace viscom {
 
                     for (int i = 0; i < 12; i++) {
 
-                        //Scaling the stored values with the max rgb values and inverting to get the final mask values
-                        syncInfoLocal_.colors_[i].x = rmax / syncInfoLocal_.colors_[i].x;
-                        syncInfoLocal_.colors_[i].y = gmax / syncInfoLocal_.colors_[i].y;
-                        syncInfoLocal_.colors_[i].z = bmax / syncInfoLocal_.colors_[i].z;
+                        // Inverting the stored values and normalizing with the min color value to get the final mask values
+                        syncInfoLocal_.colors_[i].x = rgbmin / syncInfoLocal_.colors_[i].x;
+                        syncInfoLocal_.colors_[i].y = rgbmin / syncInfoLocal_.colors_[i].y;
+                        syncInfoLocal_.colors_[i].z = rgbmin / syncInfoLocal_.colors_[i].z;
                     }
                 }
 
