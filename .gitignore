@@ -9,3 +9,4 @@ data/*/*.dat
 resources/shader/**/*.gen
 resources/**/*.viscombin
 doc/html/
+!resources/**/*.obj
