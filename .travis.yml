@@ -67,6 +67,7 @@ jobs:
             - libc++abi-8-dev
             - xorg-dev
             - libxcb-render-util0-dev
+            - libxcb-xkb-dev
             - libgl1-mesa-dev
             - libxcb-glx0-dev
             - libglu-dev
