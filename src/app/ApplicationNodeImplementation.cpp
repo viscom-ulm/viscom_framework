@@ -6,6 +6,7 @@
  * @brief  Implementation of the application node class.
  */
 
+#include "core/open_gl.h"
 #include "ApplicationNodeImplementation.h"
 #include "Vertices.h"
 #include <imgui.h>
@@ -23,9 +24,6 @@ namespace viscom {
     ApplicationNodeImplementation::ApplicationNodeImplementation(ApplicationNodeInternal* appNode) :
         ApplicationNodeBase{ appNode }
     {
-        LOG(INFO) << "InitOpenGL called in AppNImpl";
-
-
         InitialiseVR();
         if (!InitialiseDisplayVR()) {
             CalibrateVR(ovr::CalibrateMethod::CALIBRATE_BY_POINTING);
@@ -161,18 +159,14 @@ namespace viscom {
             auto MVP = GetCamera()->GetViewPerspectiveMatrix();
             auto screenMatrix = GetCamera()->GetLocalCoordMatrix();
 
-#ifdef VISCOM_USE_SGCT
             auto globalScreenSize = GetCamera()->GetGlobalScreenSize();
-#else
-            auto globalScreenSize = glm::ivec2(GetConfig().virtualScreenSize_);
-#endif
 
             float screenSizeRatio = static_cast<float>(globalScreenSize.x) / static_cast<float>(globalScreenSize.y) / static_cast<float>(GetConfig().nearPlaneSize_.x);
 
             float circleSize = demoSyncInfoLocal_.circleData_.z * static_cast<float>(globalScreenSize.y);
             if (circleSize < 1.0) circleSize = 1.0;
 
-            LOG(INFO) << demoSyncInfoLocal_.circleData_.x << ",    " << demoSyncInfoLocal_.circleData_.y << ",     " << demoSyncInfoLocal_.circleData_.z << "\n";
+            spdlog::info("{},    {},    {}", demoSyncInfoLocal_.circleData_.x, demoSyncInfoLocal_.circleData_.y, demoSyncInfoLocal_.circleData_.z);
 
             {
                 glUseProgram(backgroundProgram_->getProgramId());
@@ -188,7 +182,7 @@ namespace viscom {
                 glDrawArrays(GL_TRIANGLES, static_cast<GLsizei>(numBackgroundVertices_), 3);
                 glEnable(GL_CULL_FACE);
             }
-            
+
             {
                 auto mousepointMVP = screenMatrix * mousepointModelMatrix_;
                 glPointSize(0.03f * static_cast<float>(globalScreenSize.y));
@@ -199,7 +193,7 @@ namespace viscom {
 
             glBindVertexArray(vaoCircles_);
             glBindBuffer(GL_ARRAY_BUFFER, vboCircles_);
-            
+
 
             {
                 auto demoCirclesMVP = screenMatrix * demoCirclesModelMatrix_;
@@ -232,18 +226,6 @@ namespace viscom {
             glUseProgram(0);
         });
     }
-
-#ifdef VISCOM_USE_SGCT
-    void ApplicationNodeImplementation::UpdateSyncedInfo()
-    {
-        demoSyncInfoLocal_ = demoSyncInfoSynced_.getVal();
-    }
-
-     void ApplicationNodeImplementation::DecodeData()
-     {
-        sgct::SharedData::instance()->readObj(&demoSyncInfoSynced_);
-     }
-#endif
 
     bool ApplicationNodeImplementation::KeyboardCallback(int key, int, int action, int)
     {
@@ -300,4 +282,16 @@ namespace viscom {
         }
         return false;
     }
+
+#ifdef VISCOM_USE_SGCT
+    void ApplicationNodeImplementation::UpdateSyncedInfo()
+    {
+        demoSyncInfoLocal_ = demoSyncInfoSynced_.getVal();
+    }
+
+    void ApplicationNodeImplementation::DecodeData()
+    {
+        sgct::SharedData::instance()->readObj(&demoSyncInfoSynced_);
+    }
+#endif
 }

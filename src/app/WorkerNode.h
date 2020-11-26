@@ -20,5 +20,5 @@ namespace viscom {
 
         void Draw2D(FrameBuffer& fbo) override;
     };
-    
+
 }

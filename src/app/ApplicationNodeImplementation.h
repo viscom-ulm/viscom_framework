@@ -36,13 +36,12 @@ namespace viscom {
         virtual void ClearBuffer(FrameBuffer& fbo) override;
         virtual void DrawFrame(FrameBuffer& fbo) override;
 
+        virtual bool KeyboardCallback(int key, int scancode, int action, int mods) override;
+
 #ifdef VISCOM_USE_SGCT
         virtual void UpdateSyncedInfo() override;
         void DecodeData() override;
 #endif
-
-        virtual bool KeyboardCallback(int key, int scancode, int action, int mods) override;
-
 
     private:
         /** Holds the shader program for drawing the background. */

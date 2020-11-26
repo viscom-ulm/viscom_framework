@@ -21,7 +21,7 @@ namespace viscom {
     void WorkerNode::Draw2D(FrameBuffer& fbo)
     {
         fbo.DrawToFBO([]() {
-            if constexpr (SHOW_CLIENT_GUI) ImGui::ShowTestWindow();
+            if constexpr (SHOW_CLIENT_GUI) ImGui::ShowDemoWindow();
         });
     }
 
