@@ -20,5 +20,18 @@ namespace viscom {
 
         void Draw2D(FrameBuffer& fbo) override;
 
+        void UpdateFrame(double currenttime, double) override;
+#ifdef VISCOM_USE_SGCT
+        void PreSync() override;
+        void EncodeData() override;
+#endif // VISCOM_USE_SGCT
+
+        bool bAcquireTrackingDataByWaitingForVREvents = false;
+
+    private:
+
+        bool useLeftHandController = true;
+        bool initVr_ = false;
+        std::vector<ovr::DeviceInfo> connectedDevices_ = std::vector<ovr::DeviceInfo>();
     };
 }

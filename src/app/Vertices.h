@@ -19,6 +19,13 @@ namespace viscom {
     class GPUProgram;
     class Mesh;
 
+    struct SimpleVertex
+    {
+        glm::vec3 position_;
+
+        SimpleVertex(const glm::vec3& pos) : position_(pos) {}
+    };
+
     struct GridVertex
     {
         glm::vec3 position_;

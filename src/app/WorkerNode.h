@@ -19,6 +19,6 @@ namespace viscom {
         virtual ~WorkerNode() override;
 
         void Draw2D(FrameBuffer& fbo) override;
-
     };
+
 }
