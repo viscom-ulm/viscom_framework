@@ -68,10 +68,10 @@ int main(int argc, char** argv)
         spdlog::flush_on(spdlog::level::err);
 
         if constexpr (viscom::DEBUG_MODE) {
-            spdlog::set_level(spdlog::level::trace);
+            spdlog::set_level(spdlog::level::err);
         }
         else {
-            spdlog::set_level(spdlog::level::err);
+            spdlog::set_level(spdlog::level::trace);
         }
 
         spdlog::info("Log created.");
@@ -89,9 +89,14 @@ int main(int argc, char** argv)
     auto appNode = Application_Init(config, [](viscom::ApplicationNodeInternal* node) { return std::make_unique<viscom::CoordinatorNode>(node); },
         [](viscom::ApplicationNodeInternal* node) { return std::make_unique<viscom::WorkerNode>(node); });
 
-    // Main loop
-    spdlog::info("Started Rendering.");
-    appNode->Render();
+    if (appNode->IsInitialized()) {
+        // Main loop
+        spdlog::info("Started Rendering.");
+        appNode->Render();
+    }
+    else {
+        spdlog::info("Could not start Rendering.");
+    }
 
     return 0;
 }
