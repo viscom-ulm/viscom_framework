@@ -12,7 +12,9 @@ It is able to run on the groups powerwall and currently supports touch input fro
 
   ```conan remote add arsen-studio https://api.bintray.com/conan/arsen-studio/arsen-deps```
 
-  ```conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan```
+  ```conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan```
+  
+  ```conan config set general.revisions_enabled=1```
 - From the build folder run:
 
   ```conan install --build=missing --install-folder=./fwcore ../extern/fwcore/```
@@ -25,7 +27,9 @@ It is able to run on the groups powerwall and currently supports touch input fro
 - Use [conan](https://conan.io/)
 - Setup the remotes for glfw (need to do this only once):
 
-  ```conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan```
+  ```conan remote add bincrafters https://bincrafters.jfrog.io/artifactory/api/conan/public-conan```
+  
+  ```conan config set general.revisions_enabled=1```
 - From the project build folder run:
 
   ```conan install --build=missing --install-folder=./fwcore ../extern/fwcore/conanfile-osx.txt```
